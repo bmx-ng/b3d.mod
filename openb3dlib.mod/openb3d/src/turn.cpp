@@ -1,6 +1,3 @@
-
-#include "maths_helper.h"
-
 class Quaternion{
  
 public:

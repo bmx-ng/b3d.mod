@@ -332,7 +332,7 @@ Mesh* LoadAnimB3D(string f_name,Entity* parent_ent_ext){
 				// if not then the texture created above (supplied as param below) will be returned
 				new_tex=Texture::LoadTexture(te_file,te_flags);//,tex[tex_no]); ***todo***
 				*/
-				
+
 				te_file=Texture::NewFilePath(f_name,te_file);				
 				Texture* new_tex=Texture::LoadTexture(te_file,te_flags);
 
@@ -647,7 +647,7 @@ Mesh* LoadAnimB3D(string f_name,Entity* parent_ent_ext){
 
 			if(mesh!=NULL){
 
-				mesh->anim=true;
+				mesh->anim=1;
 
 				//mesh->frames=a_frames
 				mesh->anim_seqs_first[0]=0;

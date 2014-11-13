@@ -738,7 +738,7 @@ int Entity::AddAnimSeq(int length){
 
 			Mesh* mesh=dynamic_cast<Mesh*>(this);
 
-			anim=true;
+			anim=2;
 			anim_render=true;
 
 			//mesh->frames=a_frames

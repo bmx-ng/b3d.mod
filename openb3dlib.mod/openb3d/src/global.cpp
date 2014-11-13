@@ -35,6 +35,16 @@ int Global::width=640,Global::height=480;
 
 int Global::Shadows_enabled=false;
 
+int Global::alpha_enable=-1;
+
+int Global::blend_mode=-1;
+
+int Global::fx1=-1;
+
+int Global::fx2=-1;
+
+
+
 Pivot* Global::root_ent=new Pivot();
 
 Camera* Global::camera_in_use;
@@ -206,6 +216,10 @@ void Global::UpdateEntityAnim(Mesh& mesh){
 			if(anim_start==true) mesh.anim_time=first;
 
 		}else{
+			if(mesh.anim_mode==4){	//Manual mode
+				Animation::AnimateMesh3(&mesh);
+				return;
+			}
 
 			Animation::AnimateMesh(&mesh,mesh.anim_time,first,last);
 
@@ -217,6 +231,7 @@ void Global::UpdateEntityAnim(Mesh& mesh){
 				if(mesh.anim_time>last){
 					mesh.anim_time=first+(mesh.anim_time-last);
 				}
+				return;
 
 			}
 
@@ -237,6 +252,7 @@ void Global::UpdateEntityAnim(Mesh& mesh){
 						mesh.anim_dir=1;
 					}
 				}
+				return;
 
 			}
 

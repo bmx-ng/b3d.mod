@@ -20,10 +20,95 @@ using namespace std;
 
 void Animation::AnimateMesh(Mesh* ent1,float framef,int start_frame,int end_frame){
 	//if(dynamic_cast<Mesh*>(ent1)!=NULL){
-	if(ent1->anim==false) return; // mesh contains no anim data
+	if(ent1->anim!=1) {			//Not a bone based animation
+
+		if(ent1->anim<=0) return; // mesh contains no anim data
+
+		if(ent1->anim==64) { // repeated mesh: every frame has its own surface
+			ent1->anim_render=true;
+			//ent1->surf_list.size();
+			list<Surface*>::iterator dst_surf_it;
+			dst_surf_it=ent1->anim_surf_list.begin();
+
+			list<Surface*>::iterator src_surf_it;
+			src_surf_it=ent1->anim_surf_list.begin();
+
+			//Locate correct frame
+			for(unsigned int i=0;i<(int)framef*ent1->surf_list.size();i++){
+				src_surf_it++;
+			}
+
+			list<Surface*>::iterator surf_it;
+			surf_it=ent1->surf_list.begin();
+
+			// cycle through all surfs
+			for(surf_it=ent1->surf_list.begin();surf_it!=ent1->surf_list.end();surf_it++){
+
+				*dst_surf_it=*src_surf_it;
+				src_surf_it++;
+				dst_surf_it++;
+			}
+			
+
+
+			
+			return;
+		}
+
+
+		//Vertex deform animation
+		ent1->anim_render=true;
+
+		list<Surface*>::iterator surf_it;
+		surf_it=ent1->surf_list.begin();
+
+		list<Surface*>::iterator anim_surf_it;
+
+
+		// cycle through all surfs
+		for(anim_surf_it=ent1->anim_surf_list.begin();anim_surf_it!=ent1->anim_surf_list.end();anim_surf_it++){
+
+			Surface& anim_surf=**anim_surf_it;
+
+			Surface& surf=**surf_it;
+
+			anim_surf.reset_vbo=anim_surf.reset_vbo|1;
+
+			int t0, t1;
+			t0=0;
+			for(unsigned int i=0;i<=anim_surf.vert_weight4.size();i++){
+				if (anim_surf.vert_weight4[i]>=framef){
+					t1=i; t0=i-1;
+					break;
+				}
+			}
+			float m1=(framef-anim_surf.vert_weight4[t0])/(anim_surf.vert_weight4[t1]-anim_surf.vert_weight4[t0]);
+			float m0=1.0-m1;
+
+			t0*=anim_surf.no_verts*3;
+			t1*=anim_surf.no_verts*3;
+
+
+			for(int i=0;i<=anim_surf.no_verts*3;i++){
+				anim_surf.vert_coords[i]=surf.vert_coords[i+t0]*m0+surf.vert_coords[i+t1]*m1;
+
+			}
+
+
+
+
+			surf_it++;
+
+		}
+		
+		return;
+
+
+	}
+
 	ent1->anim_render=true;
 
-  // cap framef values
+	// cap framef values
 	if(framef>end_frame) framef=end_frame;
 	if(framef<start_frame) framef=start_frame;
 
@@ -276,7 +361,7 @@ void Animation::AnimateMesh2(Mesh* ent1,float framef,int start_frame,int end_fra
 
 	//if(dynamic_cast<Mesh*>(ent1)!=NULL){
 
-	if(ent1->anim==false) return; // mesh contains no anim data
+	if(ent1->anim!=1) return; // mesh contains no anim data
 
 		ent1->anim_render=true;
 
@@ -462,6 +547,47 @@ void Animation::AnimateMesh2(Mesh* ent1,float framef,int start_frame,int end_fra
 			// update bone children
 			//if(bent.child_list.size()!=0) Entity::UpdateChildren(&bent);
 			//bent.MQ_Update();
+
+		}
+
+		ent1->MQ_Update();
+
+		// --- vertex deform ---
+		VertexDeform(ent1);
+
+	//}
+
+}
+
+void Animation::AnimateMesh3(Mesh* ent1){
+	if(ent1->anim!=1) return; // mesh contains no anim data
+
+		ent1->anim_render=true;
+
+		//int frame=framef; // float to int
+
+		vector<Bone*>::iterator it;
+
+		for(it=ent1->bones.begin();it!=ent1->bones.end();it++){
+
+			Bone& bent=**it;
+
+			// set mat2 to equal mat
+			bent.mat2.Overwrite(bent.mat);
+
+			bent.mat2.grid[3][0]-=ent1->mat.grid[3][0];
+			bent.mat2.grid[3][1]-=ent1->mat.grid[3][1];
+			bent.mat2.grid[3][2]-=ent1->mat.grid[3][2];
+
+
+			// mat2 is used to store local bone positions, and is needed for vertex deform
+
+			// set tform mat
+			// A tform mat is needed to transform vertices, and is basically the bone mat multiplied by the inverse reference pose mat
+			bent.tform_mat.Overwrite(bent.mat2);
+
+			bent.tform_mat.Multiply(bent.inv_mat);
+
 
 		}
 

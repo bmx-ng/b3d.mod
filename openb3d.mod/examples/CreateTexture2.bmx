@@ -4,6 +4,7 @@ Strict
 
 
 Framework b3d.b3dglgraphics
+Import brl.random
 
 Graphics3D 800,600,0,2
 

@@ -39,7 +39,7 @@ public:
 	//void TreeCheck(CollisionInfo* ci);
 	void UpdateTerrain();
 	void RecreateGeoROAM();
-	void UpdateNormals();
+	void UpdateNormals(int preserve=0);
 
 	void ModifyGeosphere (int x, int y, float new_height);
 	void TreeCheck(CollisionInfo* ci);

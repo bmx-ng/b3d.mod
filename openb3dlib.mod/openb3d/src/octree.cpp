@@ -39,16 +39,18 @@ void OcTreeChild::AddToOctree(Mesh* mesh1, int level, float X, float Y, float Z,
 	
 	if (level==0){
 		mesh=mesh1;
-		if (block!=0){
-			if (mesh->parent!=0) {
-				mesh->parent->child_list.remove(mesh);
+		if (mesh!=0){
+			if (block!=0){
+				if (mesh->parent!=0) {
+					mesh->parent->child_list.remove(mesh);
+				}else{
+					Global::root_ent->child_list.remove(mesh);
+				}
 			}else{
-				Global::root_ent->child_list.remove(mesh);
+				mesh->hide=true;
 			}
-		}else{
-			mesh->hide=true;
+			mesh->Alpha();
 		}
-		mesh->Alpha();
 		/*mesh->GetBounds();
 		if ((mesh->max_x>width	|| mesh->min_x<-width)	||
 		    (mesh->max_y>height	|| mesh->min_y<-height)	||
@@ -351,13 +353,13 @@ void OcTreeChild::RenderChild(){
 
 				mesh_temp->brush=mesh->brush;
 
-				mesh_temp->anim=0;
-				mesh_temp->anim_render=0;
 				if(mesh->anim_render){
+					mesh_temp->anim=mesh->anim;
+					mesh_temp->anim_render=mesh->anim_render;
 					mesh_temp->anim_surf_list=mesh->anim_surf_list;
-				}else{
-					mesh_temp->surf_list=mesh->surf_list;
 				}
+				mesh_temp->surf_list=mesh->surf_list;
+				
 
 
 				mesh_temp->mat=mat2;

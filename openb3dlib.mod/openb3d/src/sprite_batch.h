@@ -55,6 +55,7 @@ public:
 		sprite_batch=new SpriteBatch;
 		sprite_batch->surf=new Surface;
 		sprite_batch->surf->vbo_enabled=false;
+		sprite_batch->surf->ShaderMat=0;
 		sprite_batch->texture=tex;
 		sprite_batch->blend=blend;
 		sprite_batch->order=order;
@@ -76,6 +77,8 @@ public:
 		mesh->reset_col_tree=true;
 		
 		mesh->brush.tex[0]=texture;
+		mesh->brush.cache_frame[0]=texture->texture;
+
 		mesh->brush.no_texs=1;
 		mesh->brush.blend=blend;
 		mesh->brush.fx=35;

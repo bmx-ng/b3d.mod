@@ -31,11 +31,13 @@
 #include "model.h"
 #include "pick.h"
 #include "geom.h"
+#include "animation.h"
 #include "maths_helper.h"
 #include "string_helper.h"
 #include "csg.h"
 #include "3ds.h"
 #include "x.h"
+#include "md2.h"
 
 #include <iostream>
 #include <vector>
@@ -337,6 +339,7 @@ Mesh* Mesh::LoadMesh(string filename,Entity* parent_ent){
 Mesh* Mesh::LoadAnimMesh(string filename,Entity* parent_ent){
 
 	if(Right(filename,4)==".3ds") return load3ds::Load3ds(filename, parent_ent);//filename=Replace(filename,".3ds",".b3d");
+	if(Right(filename,4)==".md2") return loadMD2::LoadMD2(filename, parent_ent);//filename=Replace(filename,".3ds",".b3d");
 
 	return LoadAnimB3D(filename,parent_ent);
 
@@ -989,8 +992,43 @@ Mesh* Mesh::RepeatMesh(Entity* parent_ent){
 	}*/
 
 	mesh->surf_list=surf_list;
-	mesh->anim_surf_list=anim_surf_list;
 	// copy anim surf list
+	if (anim!=64 && anim!=0){
+		for (int i=anim_seqs_first[0];i<=anim_seqs_last[0];i++){
+			Animation::AnimateMesh(this,i, anim_seqs_first[0], anim_seqs_last[0]);
+			list<Surface*>::iterator it2;
+			for(it2=anim_surf_list.begin();it2!=anim_surf_list.end();it2++){
+
+				Surface* surf=*it2;
+
+				Surface* new_surf=new Surface;
+				mesh->anim_surf_list.push_back(new_surf);
+
+				new_surf->no_verts=surf->no_verts;
+
+				// copy array
+				new_surf->vert_coords=surf->vert_coords;
+
+				new_surf->vert_array_size=surf->vert_array_size;
+				new_surf->tri_array_size=surf->tri_array_size;
+				new_surf->vmin=surf->vmin;
+				new_surf->vmax=surf->vmax;
+
+				new_surf->vbo_enabled=surf->vbo_enabled;
+				new_surf->reset_vbo=-1; // (-1 = all)
+
+			}
+
+		}
+		anim_surf_list=mesh->anim_surf_list;
+
+		anim=64;
+		mesh->anim=64;
+	} else {
+		mesh->anim_surf_list=anim_surf_list;
+		mesh->anim=anim;
+	}
+
 	/*for(it2=anim_surf_list.begin();it2!=anim_surf_list.end();it2++){
 
 		Surface* surf=*it2;
@@ -1011,7 +1049,6 @@ Mesh* Mesh::RepeatMesh(Entity* parent_ent){
 	return mesh;
 
 }
-
 
 void Mesh::AddMesh(Mesh* mesh2){
 
@@ -2054,11 +2091,11 @@ void Mesh::Render(){
 
 	list<Surface*>::iterator surf_it;
 
-	int any_surf=false;
+	//int any_surf=false;
 
 	for(surf_it=surf_list.begin();surf_it!=surf_list.end();surf_it++){
 
-		any_surf=true;
+		//any_surf=true;
 
 		Surface& surf=**surf_it;
 		Surface& anim_surf=**anim_surf_it;
@@ -2086,7 +2123,7 @@ void Mesh::Render(){
 
 		}
 
-		if(anim==true){
+		if(anim){
 
 			// get anim_surf
 
@@ -2137,17 +2174,16 @@ void Mesh::Render(){
 
 		//}
 
-		static int alpha_enable=-1;
 		if(surf.alpha_enable==true){
-			if(alpha_enable!=true){
-				alpha_enable=true;
+			if(Global::alpha_enable!=true){
+				Global::alpha_enable=true;
 				glEnable(GL_BLEND);
 			}
 			glDepthMask(GL_FALSE); // must be set to false every time, as it's always equal to true before it's called
 			depth_mask_disabled=true; // set this to true to we know when to enable depth mask at bottom of function
 		}else{
-			if(alpha_enable!=false){
-				alpha_enable=false;
+			if(Global::alpha_enable!=false){
+				Global::alpha_enable=false;
 				glDisable(GL_BLEND);
 				//glDepthMask(GL_TRUE); already set to true
 			}
@@ -2155,9 +2191,8 @@ void Mesh::Render(){
 
 		// blend modes
 
-		static int blend_mode=-1;
-		if(blend!=blend_mode){
-			blend_mode=blend;
+		if(blend!=Global::blend_mode){
+			Global::blend_mode=blend;
 
 			switch(blend){
 				case 0:
@@ -2179,18 +2214,17 @@ void Mesh::Render(){
 		// fx modes
 
 		// fx flag 1 - full bright ***todo*** disable all lights?
-		static int fx1=-1;
 		if(fx&1){
-			if(fx1!=true){
-				fx1=true;
+			if(Global::fx1!=true){
+				Global::fx1=true;
 				glDisableClientState(GL_NORMAL_ARRAY);
 			}
 			ambient_red  =1.0;
 			ambient_green=1.0;
 			ambient_blue =1.0;
 		}else{
-			if(fx1!=false){
-				fx1=false;
+			if(Global::fx1!=false){
+				Global::fx1=false;
 				glEnableClientState(GL_NORMAL_ARRAY);
 			}
 			ambient_red  =Global::ambient_red;
@@ -2199,16 +2233,15 @@ void Mesh::Render(){
 		}
 
 		// fx flag 2 - vertex colours
-		static int fx2=-1;
 		if(fx&2){
-			if(fx2!=true){
-				fx2=true;
+			if(Global::fx2!=true){
+				Global::fx2=true;
 				glEnableClientState(GL_COLOR_ARRAY);
 				glEnable(GL_COLOR_MATERIAL);
 			}
 		}else{
-			if(fx2!=false){
-				fx2=false;
+			if(Global::fx2!=false){
+				Global::fx2=false;
 				glDisableClientState(GL_COLOR_ARRAY);
 				glDisable(GL_COLOR_MATERIAL);
 			}
@@ -2453,7 +2486,7 @@ void Mesh::Render(){
 					switch(tex_blend){
 						case 0: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
 						break;
-						case 1: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
+						case 1: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_DECAL);
 						break;
 						case 2: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
 						//case 2 glTexEnvf(GL_TEXTURE_ENV,GL_COMBINE_RGB_EXT,GL_MODULATE);
@@ -2633,7 +2666,7 @@ void Mesh::Render(){
 		fog_disabled=false; // set to false again for when we repeat loop
 	}
 
-	if(any_surf==false) cout << "No surf: " << EntityName() << endl;
+	//if(any_surf==false) cout << "No surf: " << EntityName() << endl;
 
 }
 
@@ -2645,11 +2678,11 @@ void Mesh::UpdateShadow(){
 
 	list<Surface*>::iterator surf_it;
 
-	int any_surf=false;
+	//int any_surf=false;
 
 	for(surf_it=surf_list.begin();surf_it!=surf_list.end();surf_it++){
 
-		any_surf=true;
+		//any_surf=true;
 
 		Surface& surf=**surf_it;
 		Surface& anim_surf=**anim_surf_it;
@@ -2669,7 +2702,7 @@ void Mesh::UpdateShadow(){
 
 		}
 
-		if(anim==true){
+		if(anim){
 
 			// get anim_surf
 

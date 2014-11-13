@@ -13,6 +13,7 @@
 #include "light.h"
 #include "sprite.h"
 #include "sprite_batch.h"
+#include "particle.h"
 #include "pick.h"
 #include "project.h"
 //#include "misc.h"
@@ -472,12 +473,12 @@ void Camera::Update(){
 
 	if(fog_mode>0){
 	
-		//if(fog!=true){
+		if(fog!=true){
 			glEnable(GL_FOG); // enable if disabled
 			if(fog==-1) glFogf(GL_FOG_MODE,GL_LINEAR); // once only
 			fog=true;
 			Global::fog_enabled=true; // used in mesh render
-		//}
+		}
 		
 		if(abs(fog_near-fog_range_near)>0.0001){
 			glFogf(GL_FOG_START,fog_range_near);
@@ -499,11 +500,11 @@ void Camera::Update(){
 		
 	}else{
 		
-		//if(fog!=false){
+		if(fog!=false){
 			glDisable(GL_FOG);
 			fog=false;
 			Global::fog_enabled=false; // used in mesh render
-		//}
+		}
 		
 	}
 	
@@ -632,17 +633,39 @@ void UpdateEntityRender(Entity* ent,Entity* cam){
 		
 			if(sprite){
 	
-				dynamic_cast<Camera*>(cam)->UpdateSprite(*sprite);
+				switch (sprite->render_mode){
+					case (1):{
+						dynamic_cast<Camera*>(cam)->UpdateSprite(*sprite);
+						break;}
+
 			
-				if(sprite->render_mode==2){ // sprite batch rendering
+					case (2):{ // sprite batch rendering
+						dynamic_cast<Camera*>(cam)->UpdateSprite(*sprite);
+
+						Surface* surf=SpriteBatch::GetSpriteBatchSurface(sprite->brush.tex[0],sprite->brush.blend,sprite->order);
 			
-					Surface* surf=SpriteBatch::GetSpriteBatchSurface(sprite->brush.tex[0],sprite->brush.blend,sprite->order);
-			
-					dynamic_cast<Camera*>(cam)->AddTransformedSpriteToSurface(*sprite,surf);
+						dynamic_cast<Camera*>(cam)->AddTransformedSpriteToSurface(*sprite,surf);
 				
-					return;
+						return;}
+					case (3):{
+						Surface* surf=ParticleBatch::GetParticleBatchSurface(sprite->brush.tex[0],sprite->brush.blend,sprite->order);
+			
+						surf->no_verts++;
+
+						surf->vert_coords.push_back(sprite->mat.grid[3][0]);
+						surf->vert_coords.push_back(sprite->mat.grid[3][1]);
+						surf->vert_coords.push_back(sprite->mat.grid[3][2]);
+
+						surf->vert_col.push_back(1.0);
+						surf->vert_col.push_back(1.0);
+						surf->vert_col.push_back(1.0);
+						surf->vert_col.push_back(1.0);
+
+				
+						return;}
 					
-				}
+					
+				}  
 				
 			}
 		

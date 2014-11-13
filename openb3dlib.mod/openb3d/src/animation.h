@@ -21,6 +21,7 @@ public:
 
 	static void AnimateMesh(Mesh* ent1,float framef,int start_frame,int end_frame);
 	static void AnimateMesh2(Mesh* ent1,float framef,int start_frame,int end_frame);
+	static void AnimateMesh3(Mesh* ent1);
 	static void VertexDeform(Mesh* ent);
 	//static void NormaliseWeights(Mesh* mesh);
 	

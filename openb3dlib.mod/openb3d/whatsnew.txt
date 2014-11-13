@@ -1,3 +1,20 @@
+V0.9
+Added:
+-Metaballs (CreateFluid and CreateBlob)
+-MD2 support (transitional animations are not yet supported)
+-Manual animation (mode 4): it's now possible the bones of an animated mesh, and the mesh will deform
+-Pre-rendered mesh animations: when a mesh is copied using RepeatMesh, all frames of the animation are rendered and stored in video memory, to be used for every instance of the mesh: animation is less smooth, but if many animated meshes are rendered at the same time, less system resources are used
+
+
+-Fixed
+-Some bugs in Octrees
+-SpriteRenderMode now works
+-Geosphere LOD works better
+-Upgraded image loader
+-Removed all the glBegin..glEnd pairs from the code: now, compiling for GLES should be easier
+
+
+V0.8
 Added:
 - ClearCollisions
 - Geospheres: now it's possible to make planets (spherical terrains)

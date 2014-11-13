@@ -41,6 +41,7 @@ static Line Ray;
 static float radius;
 
 
+static vector<float> vertices;
 
 
 MeshInfo* Terrain::mesh_info;
@@ -184,8 +185,9 @@ Terrain* Terrain::CreateTerrain(int tsize, Entity* parent_ent){
 
 void Terrain::UpdateTerrain(){
 
-	int fog=false;
-	if (glIsEnabled(GL_FOG)==GL_TRUE) fog=true; // if fog enabled, we'll enable it again at end of each surf loop in case of fx flag disabling it
+	glBindBuffer(GL_ARRAY_BUFFER,0);
+
+	RecreateROAM();
 
 	glDisable(GL_ALPHA_TEST);
 
@@ -216,21 +218,36 @@ void Terrain::UpdateTerrain(){
 
 	// fx flag 1 - full bright ***todo*** disable all lights?
 	if (brush.fx & 1){
+		if(Global::fx1!=true){
+			Global::fx1=true;
+			glDisableClientState(GL_NORMAL_ARRAY);
+		}
 		ambient_red  =1.0;
 		ambient_green=1.0;
 		ambient_blue =1.0;
 	}else{
+		if(Global::fx1!=false){
+			Global::fx1=false;
+			glEnableClientState(GL_NORMAL_ARRAY);
+		}
 		ambient_red  =Global::ambient_red;
 		ambient_green=Global::ambient_green;
 		ambient_blue =Global::ambient_blue;
 	}
 
 	// fx flag 2 - vertex colours
-	if(brush.fx&2){
+	/*if(brush.fx&2){
+
 			glEnable(GL_COLOR_MATERIAL);
 	}else{
 			glDisable(GL_COLOR_MATERIAL);
+	}*/
+	if(Global::fx2!=false){
+		Global::fx2=false;
+		glDisableClientState(GL_COLOR_ARRAY);
+		glDisable(GL_COLOR_MATERIAL);
 	}
+
 
 	// fx flag 4 - flatshaded
 	if(brush.fx&4){
@@ -241,7 +258,9 @@ void Terrain::UpdateTerrain(){
 
 	// fx flag 8 - disable fog
 	if(brush.fx&8){
+		if(Global::fog_enabled==true){ // only disable if fog enabled in camera update
 			glDisable(GL_FOG);
+		}
 	}
 
 	// fx flag 16 - disable backface culling
@@ -399,7 +418,7 @@ void Terrain::UpdateTerrain(){
 			switch(tex_blend){
 				case 0: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
 				break;
-				case 1: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
+				case 1: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_DECAL);
 				break;
 				case 2: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
 				//case 2 glTexEnvf(GL_TEXTURE_ENV,GL_COMBINE_RGB_EXT,GL_MODULATE);
@@ -417,6 +436,9 @@ void Terrain::UpdateTerrain(){
 					break;
 				default: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
 			}
+
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			glTexCoordPointer(2,GL_FLOAT,32,&vertices[6]);
 
 
 			// reset texture matrix
@@ -478,7 +500,10 @@ void Terrain::UpdateTerrain(){
 
 	glPushMatrix();
 	glMultMatrixf(&mat.grid[0][0]);
-	RecreateROAM();
+	glVertexPointer(3,GL_FLOAT,32,&vertices[0]);
+	glNormalPointer(GL_FLOAT,32,&vertices[3]);
+
+	glDrawArrays(GL_TRIANGLES, 0, triangleindex*3);
 	glPopMatrix();
 
 	// disable all texture layers
@@ -503,8 +528,10 @@ void Terrain::UpdateTerrain(){
 		}
 
 	}
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
-	if (fog==true){
+
+	if (brush.fx&8 && Global::fog_enabled==true){
 		glEnable(GL_FOG);
 	}
 
@@ -551,24 +578,15 @@ void Terrain::RecreateROAM(){
 
 
 
-/*	if(c_col_tree!=NULL){
-		C_DeleteColTree(c_col_tree);
-		c_col_tree=NULL;
-	}
-	mesh_info=C_NewMeshInfo();
-*/
 	triangleindex = 0;
 
-	glBegin(GL_TRIANGLES);
+	vertices.clear();
 
 	/* recurse on the two base triangles */
 	drawsub(0, v[0], v[1], v[2]);
 	drawsub(0, v[2], v[3], v[0]);
 
-	glEnd();
-/*	c_col_tree=C_CreateColTree(mesh_info);
-	C_DeleteMeshInfo(mesh_info);
-*/	delete tmat;
+	delete tmat;
 
 
 }
@@ -645,58 +663,30 @@ void Terrain::drawsub(int l, float v0[], float v1[], float v2[]){
 		}
 
 	 }
-	float uv[3];
-
-	/*float ax,ay,az,bx,by,bz;
-	float nx,ny,nz,ns;
-	ax = v1[0]-v0[0];
-	ay = v1[1]-v0[1];
-	az = v1[2]-v0[2];
-	bx = v2[0]-v1[0];
-	by = v2[1]-v1[1];
-	bz = v2[2]-v1[2];
-	nx = ( ay * bz ) - ( az * by );
-	ny = ( az * bx ) - ( ax * bz );
-	nz = ( ax * by ) - ( ay * bx );
-	ns = sqrt( nx * nx + ny*ny + nz*nz );
-	if (ns != 0) ns = 1;
-	nx /= ns;
-	ny /= ns;
-	nz /= ns;*/
+	vertices.push_back(v0[0]); vertices.push_back(v0[1]); vertices.push_back(v0[2]);
+	vertices.push_back(NormalsMap[3*(int)(v0[0]*size+ v0[2])+0]);
+	vertices.push_back(NormalsMap[3*(int)(v0[0]*size+ v0[2])+1]);
+	vertices.push_back(NormalsMap[3*(int)(v0[0]*size+ v0[2])+2]);
+	vertices.push_back(v0[0]);
+	vertices.push_back(v0[2]);
 
 
+	vertices.push_back(v1[0]); vertices.push_back(v1[1]); vertices.push_back(v1[2]);
+	vertices.push_back(NormalsMap[3*(int)(v1[0]*size+ v1[2])+0]);
+	vertices.push_back(NormalsMap[3*(int)(v1[0]*size+ v1[2])+1]);
+	vertices.push_back(NormalsMap[3*(int)(v1[0]*size+ v1[2])+2]);
+	vertices.push_back(v1[0]);
+	vertices.push_back(v1[2]);
 
-	uv[0]=v0[0]; uv[1]=v0[2]; uv[2]=0;
-	glMultiTexCoord2f(GL_TEXTURE0, uv[0], uv[1]);
-	glMultiTexCoord2f(GL_TEXTURE1, uv[0], uv[1]);
-	//glNormal3f(nx,ny,nz);
-	glNormal3fv (&NormalsMap[3*(int)(v0[0]*size+ v0[2])]);
-	//glTexCoord2fv(&uv[0]);
-	glVertex3fv(&v0[0]);
 
-	uv[0]=v1[0]; uv[1]=v1[2]; uv[2]=0;
-	glMultiTexCoord2f(GL_TEXTURE0, uv[0], uv[1]);
-	glMultiTexCoord2f(GL_TEXTURE1, uv[0], uv[1]);
-	//glNormal3f(nx,ny,nz);
-	glNormal3fv (&NormalsMap[3*(int)(v1[0]*size+ v1[2])]);
-	//glTexCoord2fv(&uv[0]);
-	glVertex3fv(&v1[0]);
+	vertices.push_back(v2[0]); vertices.push_back(v2[1]); vertices.push_back(v2[2]);
+	vertices.push_back(NormalsMap[3*(int)(v2[0]*size+ v2[2])+0]);
+	vertices.push_back(NormalsMap[3*(int)(v2[0]*size+ v2[2])+1]);
+	vertices.push_back(NormalsMap[3*(int)(v2[0]*size+ v2[2])+2]);
+	vertices.push_back(v2[0]);
+	vertices.push_back(v2[2]);
 
-	uv[0]=v2[0]; uv[1]=v2[2]; uv[2]=0;
-	glMultiTexCoord2f(GL_TEXTURE0, uv[0], uv[1]);
-	glMultiTexCoord2f(GL_TEXTURE1, uv[0], uv[1]);
-	//glNormal3f(nx,ny,nz);
-	glNormal3fv (&NormalsMap[3*(int)(v2[0]*size+ v2[2])]);
-	//glTexCoord2fv(&uv[0]);
-	glVertex3fv(&v2[0]);
-
-	//add to collisiontree
-/*	C_AddVertex(mesh_info,v0[0],v0[1],-v0[2],0);
-	C_AddVertex(mesh_info,v1[0],v1[1],-v1[2],0);
-	C_AddVertex(mesh_info,v2[0],v2[1],-v2[2],0);
-	C_AddTriangle(mesh_info, triangleindex, triangleindex*3+2, triangleindex*3+1, triangleindex*3+0, 0);
 	triangleindex++;
-*/
 
 }
 
@@ -954,22 +944,22 @@ float Terrain::TerrainX (float x, float y, float z){
 float Terrain::TerrainY (float x, float y, float z){
 	TFormPoint(x, y, z, 0, this);
 	float p0[3],p1[3],p2[3];
-	p0[0]=tformed_x;
-	p0[2]=tformed_z;
+	p0[0]=(int)tformed_x;
+	p0[2]=(int)tformed_z;
 	p0[1]=height[(int)((int)tformed_x*size-tformed_z)] * vsize;
 
-	p2[0]=tformed_x+1;
-	p2[2]=tformed_z;
+	p2[0]=(int)tformed_x+1;
+	p2[2]=(int)tformed_z;
 	p2[1]=height[(int)(((int)(tformed_x+1)*size)- tformed_z)] * vsize;
 
 	if (tformed_x-floor(tformed_x)-tformed_z+floor(tformed_z)<.5){
-		p1[0]=tformed_x;
-		p1[2]=tformed_z+1;
+		p1[0]=(int)tformed_x;
+		p1[2]=(int)tformed_z+1;
 		p1[1]=height[(int)(((int)tformed_x*size)- tformed_z-1)] * vsize;
 	}else
 	{
-		p1[0]=tformed_x+1;
-		p1[2]=tformed_z+1;
+		p1[0]=(int)tformed_x+1;
+		p1[2]=(int)tformed_z+1;
 		p1[1]=height[(int)(((int)(tformed_x+1)*size)- tformed_z-1)] * vsize;
 	}
 

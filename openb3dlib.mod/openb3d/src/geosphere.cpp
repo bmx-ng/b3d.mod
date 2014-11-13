@@ -39,6 +39,8 @@
 static Line Ray;
 static float radius;
 
+static vector<float> vertices;
+
 
 Terrain* Geosphere::CopyEntity(Entity* parent_ent){
 
@@ -187,8 +189,9 @@ Geosphere* Geosphere::CreateGeosphere(int tsize, Entity* parent_ent){
 
 void Geosphere::UpdateTerrain(){
 
-	int fog=false;
-	if (glIsEnabled(GL_FOG)==GL_TRUE) fog=true; // if fog enabled, we'll enable it again at end of each surf loop in case of fx flag disabling it
+	glBindBuffer(GL_ARRAY_BUFFER,0);
+
+	RecreateGeoROAM();
 
 	glDisable(GL_ALPHA_TEST);
 
@@ -219,21 +222,36 @@ void Geosphere::UpdateTerrain(){
 
 	// fx flag 1 - full bright ***todo*** disable all lights?
 	if (brush.fx & 1){
+		if(Global::fx1!=true){
+			Global::fx1=true;
+			glDisableClientState(GL_NORMAL_ARRAY);
+		}
 		ambient_red  =1.0;
 		ambient_green=1.0;
 		ambient_blue =1.0;
 	}else{
+		if(Global::fx1!=false){
+			Global::fx1=false;
+			glEnableClientState(GL_NORMAL_ARRAY);
+		}
 		ambient_red  =Global::ambient_red;
 		ambient_green=Global::ambient_green;
 		ambient_blue =Global::ambient_blue;
 	}
 
 	// fx flag 2 - vertex colours
-	if(brush.fx&2){
+	/*if(brush.fx&2){
+
 			glEnable(GL_COLOR_MATERIAL);
 	}else{
 			glDisable(GL_COLOR_MATERIAL);
+	}*/
+	if(Global::fx2!=false){
+		Global::fx2=false;
+		glDisableClientState(GL_COLOR_ARRAY);
+		glDisable(GL_COLOR_MATERIAL);
 	}
+
 
 	// fx flag 4 - flatshaded
 	if(brush.fx&4){
@@ -244,7 +262,9 @@ void Geosphere::UpdateTerrain(){
 
 	// fx flag 8 - disable fog
 	if(brush.fx&8){
+		if(Global::fog_enabled==true){ // only disable if fog enabled in camera update
 			glDisable(GL_FOG);
+		}
 	}
 
 	// fx flag 16 - disable backface culling
@@ -402,7 +422,7 @@ void Geosphere::UpdateTerrain(){
 			switch(tex_blend){
 				case 0: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
 				break;
-				case 1: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
+				case 1: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_DECAL);
 				break;
 				case 2: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
 				//case 2 glTexEnvf(GL_TEXTURE_ENV,GL_COMBINE_RGB_EXT,GL_MODULATE);
@@ -420,6 +440,9 @@ void Geosphere::UpdateTerrain(){
 					break;
 				default: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
 			}
+
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			glTexCoordPointer(2,GL_FLOAT,32,&vertices[6]);
 
 
 			// reset texture matrix
@@ -481,7 +504,10 @@ void Geosphere::UpdateTerrain(){
 
 	glPushMatrix();
 	glMultMatrixf(&mat.grid[0][0]);
-	RecreateGeoROAM();
+	glVertexPointer(3,GL_FLOAT,32,&vertices[0]);
+	glNormalPointer(GL_FLOAT,32,&vertices[3]);
+
+	glDrawArrays(GL_TRIANGLES, 0, triangleindex*3);
 	glPopMatrix();
 
 	// disable all texture layers
@@ -506,14 +532,17 @@ void Geosphere::UpdateTerrain(){
 		}
 
 	}
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
-	if (fog==true){
+
+	if (brush.fx&8 && Global::fog_enabled==true){
 		glEnable(GL_FOG);
 	}
 
 	if(ShaderMat!=NULL){
 		ShaderMat->TurnOff();
 	}
+
 
 }
 
@@ -571,7 +600,7 @@ void Geosphere::RecreateGeoROAM(){
 
 	triangleindex = 0;
 
-	glBegin(GL_TRIANGLES);
+	vertices.clear();
 
 	geosub( 0, v[0], v[1], v[2]);
 	geosub( 0, v[0], v[2], v[3]);
@@ -584,9 +613,6 @@ void Geosphere::RecreateGeoROAM(){
 	geosub( 0, v[1], v[4], v[8]);
 
 
-
-	glEnd();
-
 	delete tmat;
 
 
@@ -594,11 +620,12 @@ void Geosphere::RecreateGeoROAM(){
 
 void Geosphere::geosub(int l, float v2[], float v1[], float v0[]){
 
-	float vc[3][5];	/* New (split) vertices */
-	float ds;	/* maximum midpoint displacement */
-	float dx,dy,dz;	/* difference vector */
-	float rd;	/* squared sphere bound radius */
-	float rc;	/* squared distance from vc To camera position */
+	float vc[3][5];			/* New (split) vertices */
+	float ds;			/* maximum midpoint displacement */
+	float dx,dy,dz;			/* difference vector */
+	float rd;			/* squared sphere bound radius */
+	float nx[3],ny[3], nz[3];
+	float rc, rc0, rc1, rc2;	/* squared distance from vc To camera position */
 
 	if (l < ROAM_LMAX) {
 		ds = level2dzsize[l];
@@ -639,73 +666,109 @@ void Geosphere::geosub(int l, float v2[], float v1[], float v0[]){
 		}
 
 		/* compute distance from split point To camera (squared) */
-		dx = x - xcf;
+		/*dx = x - xcf;
 		dy = y - ycf;
 		dz = z - zcf;
-		rc = dx*dx+dy*dy+dz*dz;
+		rc = dx*dx+dy*dy+dz*dz;*/
+		nx[0]=(v0[0]+v1[0])/2;
+		ny[0]=(v0[1]+v1[1])/2;
+		nz[0]=(v0[2]+v1[2])/2;
+
+		dx = nx[0] - xcf;
+		dy = ny[0] - ycf;
+		dz = nz[0] - zcf;
+		rc0 = dx*dx+dy*dy+dz*dz;
+		rc=rc0;
+
+		nx[1]=(v1[0]+v2[0])/2;
+		ny[1]=(v1[1]+v2[1])/2;
+		nz[1]=(v1[2]+v2[2])/2;
+
+		dx = nx[1] - xcf;
+		dy = ny[1] - ycf;
+		dz = nz[1] - zcf;
+		rc1 = dx*dx+dy*dy+dz*dz;
+		if (rc>rc1) {rc=rc1;}
+
+		nx[2]=(v2[0]+v0[0])/2;
+		ny[2]=(v2[1]+v0[1])/2;
+		nz[2]=(v2[2]+v0[2])/2;
+
+		dx = nx[2] - xcf;
+		dy = ny[2] - ycf;
+		dz = nz[2] - zcf;
+		rc2 = dx*dx+dy*dy+dz*dz;
+		if (rc>rc2) {rc=rc2;}
+
+
 
 		/* If not error large on screen, recursively split */
 		if (ds > rc) {/*<---------terrain detail here*/
 
-			l++;
-			float nx, ny, nz, d, h;
+			float d,h;
+			/*float nx, ny, nz, d, h, ts;
 
-			nx=(v0[0]+v1[0])/2;
+			ts=size/(1<<l)*4.8;//size*size/l/l*11.973;
+			ts*=ts;*/
+
+			l++;
+
+			/*nx=(v0[0]+v1[0])/2;
 			ny=(v0[1]+v1[1])/2;
 			nz=(v0[2]+v1[2])/2;
 
 			dx = nx - xcf;
 			dy = ny - ycf;
 			dz = nz - zcf;
-			rc = dx*dx+dy*dy+dz*dz+size*size/l/l*11.973;
+			rc = dx*dx+dy*dy+dz*dz+ts;*/
 
 
 			vc[0][3]=(v0[3]+v1[3])/2; vc[0][4]=(v0[4]+v1[4])/2;
 			h=height[(int)vc[0][3]*(int)size+ (int)vc[0][4]]*vsize+1;
-			if (ds > rc) {
-				d=sqrt(nx*nx+ny*ny+nz*nz)/(size)/h;
+			if (ds > rc0) {
+				d=sqrt(nx[0]*nx[0]+ny[0]*ny[0]+nz[0]*nz[0])/(size)/h;
 			}else{
 				d=1;
 			}
-			vc[0][0]=nx/d; vc[0][1]=ny/d; vc[0][2]=nz/d; 
+			vc[0][0]=nx[0]/d; vc[0][1]=ny[0]/d; vc[0][2]=nz[0]/d; 
 
 
-			nx=(v1[0]+v2[0])/2;
+			/*nx=(v1[0]+v2[0])/2;
 			ny=(v1[1]+v2[1])/2;
 			nz=(v1[2]+v2[2])/2;
 
 			dx = nx - xcf;
 			dy = ny - ycf;
 			dz = nz - zcf;
-			rc = dx*dx+dy*dy+dz*dz+size*size/l/l*11.973;
+			rc = dx*dx+dy*dy+dz*dz+ts;*/
 
 			vc[1][3]=(v1[3]+v2[3])/2; vc[1][4]=(v1[4]+v2[4])/2;
 			h=height[(int)vc[1][3]*(int)size+ (int)vc[1][4]]*vsize+1;
-			if (ds > rc) {
-				d=sqrt(nx*nx+ny*ny+nz*nz)/(size)/h;
+			if (ds > rc1) {
+				d=sqrt(nx[1]*nx[1]+ny[1]*ny[1]+nz[1]*nz[1])/(size)/h;
 			}else{
 				d=1;
 			}
-			vc[1][0]=nx/d; vc[1][1]=ny/d; vc[1][2]=nz/d; 
+			vc[1][0]=nx[1]/d; vc[1][1]=ny[1]/d; vc[1][2]=nz[1]/d; 
 
 
-			nx=(v2[0]+v0[0])/2;
+			/*nx=(v2[0]+v0[0])/2;
 			ny=(v2[1]+v0[1])/2;
 			nz=(v2[2]+v0[2])/2;
 
 			dx = nx - xcf;
 			dy = ny - ycf;
 			dz = nz - zcf;
-			rc = dx*dx+dy*dy+dz*dz+size*size/l/l*11.973;
+			rc = dx*dx+dy*dy+dz*dz+ts;*/
 
 			vc[2][3]=(v2[3]+v0[3])/2; vc[2][4]=(v2[4]+v0[4])/2;
 			h=height[(int)vc[2][3]*(int)size+ (int)vc[2][4]]*vsize+1;
-			if (ds > rc) {
-				d=sqrt(nx*nx+ny*ny+nz*nz)/(size)/h;
+			if (ds > rc2) {
+				d=sqrt(nx[2]*nx[2]+ny[2]*ny[2]+nz[2]*nz[2])/(size)/h;
 			}else{
 				d=1;
 			}
-			vc[2][0]=nx/d; vc[2][1]=ny/d; vc[2][2]=nz/d; 
+			vc[2][0]=nx[2]/d; vc[2][1]=ny[2]/d; vc[2][2]=nz[2]/d; 
 
 			geosub(l, v0, vc[2], vc[0]);
 			geosub(l, v1, vc[0], vc[1]);
@@ -723,23 +786,26 @@ void Geosphere::geosub(int l, float v2[], float v1[], float v0[]){
 	n1=&NormalsMap[5*(int)((int)v1[3]*(int)size+ v1[4])];
 	n2=&NormalsMap[5*(int)((int)v2[3]*(int)size+ v2[4])];
 
-	//uv[0]=0.5f * ( 1.0f + ArcTan0); uv[1]= acos( v0[1] ) * ( 1 / M_PI ); uv[2]=0;
-	glMultiTexCoord2fv(GL_TEXTURE0, &n0[3]);
-	glMultiTexCoord2fv(GL_TEXTURE1, &n0[3]);
-	glNormal3fv(&n0[0]);
-	glVertex3fv(&v0[0]);
+	vertices.push_back(v0[0]); vertices.push_back(v0[1]); vertices.push_back(v0[2]);
+	vertices.push_back(n0[0]); vertices.push_back(n0[1]); vertices.push_back(n0[2]);
+	vertices.push_back(n0[3]);
+	vertices.push_back(n0[4]);
 
-	//uv[0]=0.5f * ( 1.0f + ArcTan1); uv[1]= acos( v1[1] ) * ( 1 / M_PI ); uv[2]=0;
-	glMultiTexCoord2fv(GL_TEXTURE0, &n1[3]);
-	glMultiTexCoord2fv(GL_TEXTURE1, &n1[3]);
-	glNormal3fv(&n1[0]);
-	glVertex3fv(&v1[0]);
 
-	//uv[0]=0.5f * ( 1.0f + ArcTan2); uv[1]= acos( v2[1] ) * ( 1 / M_PI ); uv[2]=0;
-	glMultiTexCoord2fv(GL_TEXTURE0, &n2[3]);
-	glMultiTexCoord2fv(GL_TEXTURE1, &n2[3]);
-	glNormal3fv(&n2[0]);
-	glVertex3fv(&v2[0]);
+	vertices.push_back(v1[0]); vertices.push_back(v1[1]); vertices.push_back(v1[2]);
+	vertices.push_back(n1[0]); vertices.push_back(n1[1]); vertices.push_back(n1[2]);
+	vertices.push_back(n1[3]);
+	vertices.push_back(n1[4]);
+
+
+	vertices.push_back(v2[0]); vertices.push_back(v2[1]); vertices.push_back(v2[2]);
+	vertices.push_back(n2[0]); vertices.push_back(n2[1]); vertices.push_back(n2[2]);
+	vertices.push_back(n2[3]);
+	vertices.push_back(n2[4]);
+
+	triangleindex++;
+
+
 }
 
 
@@ -785,7 +851,7 @@ void Geosphere::TOASTsub(int l, float v2[], float v1[], float v0[]){
 		return;
 	}
 
-	float ax,ay,az,bx,by,bz;
+	/*float ax,ay,az,bx,by,bz;
 	float nx,ny,nz,ns;
 	float h0,h1,h2;
 
@@ -817,7 +883,7 @@ void Geosphere::TOASTsub(int l, float v2[], float v1[], float v0[]){
 
 	NormalsMap[5*(int)((int)v2[3]*(int)size+ v2[4])]=nx;
 	NormalsMap[5*(int)((int)v2[3]*(int)size+ v2[4])+1]=ny;
-	NormalsMap[5*(int)((int)v2[3]*(int)size+ v2[4])+2]=nz;
+	NormalsMap[5*(int)((int)v2[3]*(int)size+ v2[4])+2]=nz;*/
 
 
 	float u,v;
@@ -974,6 +1040,34 @@ void Geosphere::EquirectangularToTOAST (){
 
 }
 
+void Geosphere::UpdateNormals (int preserve){
+		for (int y=0;y<size;y++){
+			for (int x=0;x<size;x++){
+				float theta=-M_PI*(NormalsMap[5*(x*(int)size+ y)+3]-hsize)/size*2;
+				float phi=M_PI*(NormalsMap[5*(x*(int)size+ y)+4])/size;
+				if (preserve==0){
+					NormalsMap[5*(x*(int)size+ y)]=sin(phi) * cos(theta);
+					NormalsMap[5*(x*(int)size+ y)+1]=cos(phi);
+					NormalsMap[5*(x*(int)size+ y)+2]=sin(phi) * sin(theta);
+				}else{
+					float a,b,c, d,e,f;
+					a=sin(phi) * cos(theta);
+					b=cos(phi);
+					c=sin(phi) * sin(theta);
+
+					d=NormalsMap[5*(x*(int)size+ y)];
+					e=NormalsMap[5*(x*(int)size+ y)+1];
+					f=NormalsMap[5*(x*(int)size+ y)+2];
+
+					NormalsMap[5*(x*(int)size+ y)]=a*e+c*d;
+					NormalsMap[5*(x*(int)size+ y)+1]=b*e+f;
+					NormalsMap[5*(x*(int)size+ y)+2]=c*e-a*d;
+
+				}
+			}
+		}
+}
+
 Geosphere* Geosphere::LoadGeosphere(string filename,Entity* parent_ent){
 	//filename=Strip(filename); // get rid of path info
 
@@ -996,10 +1090,23 @@ Geosphere* Geosphere::LoadGeosphere(string filename,Entity* parent_ent){
 
 	pixels=stbi_load(filename.c_str(),&width,&height,0,1);   //Memory leak fixed by D.J.Peters
 
+	short* tmpNormals=0;		//An equirectangular normal maps
+
 	// all OK ?
 	if (pixels!=NULL) {
 		// work with a copy of the pixel pointer
 		unsigned char* buffer=pixels;
+
+		tmpNormals=new short[(width+1)*(height+1)*2];	// Build an equirectangular normals map, that will be used to build
+								// the final normals map in TOAST projection.
+		for (int x=1;x<=width;x++){
+			for (int y=1;y<=height-2;y++){
+				tmpNormals[2*(y*(int)width+x)]=((short)*(buffer+(x-1)+y*width)) - ((short)*(buffer+(x+1)+y*width));
+				tmpNormals[2*(y*(int)width+x)+1]=((short)*(buffer+x+(y-1)*width)) - ((short)*(buffer+x+(y+1)*width));
+			}
+		}
+
+
 		geo=Geosphere::CreateGeosphere(width, parent_ent);
 
 		geo->size=height;
@@ -1016,6 +1123,9 @@ Geosphere* Geosphere::LoadGeosphere(string filename,Entity* parent_ent){
 				}
 
 				geo->height[x*(int)geo->size+y]=((float)*(buffer+x1+y1*width))/255.0;
+				geo->NormalsMap[5*(x*(int)geo->size+ y)]=(float)tmpNormals[2*(y1*(int)width+x1)];
+				geo->NormalsMap[5*(x*(int)geo->size+ y)+1]=256;
+				geo->NormalsMap[5*(x*(int)geo->size+ y)+2]=(float)tmpNormals[2*(y1*(int)width+x1)+1];
 			}
 		}
 		stbi_image_free(pixels);
@@ -1035,7 +1145,8 @@ Geosphere* Geosphere::LoadGeosphere(string filename,Entity* parent_ent){
 	}
 
 
-	//geo->UpdateNormals();
+	geo->UpdateNormals(true);
+	delete tmpNormals;
 
 	return geo;
 }

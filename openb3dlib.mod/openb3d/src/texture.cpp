@@ -436,6 +436,9 @@ void Texture::BackBufferToTex(int frame){
 void Texture::CameraToTex(Camera* cam, int frame){
 
 	GLenum target;
+
+	Global::camera_in_use=cam;
+
 	if(flags&128){
 		target=GL_TEXTURE_CUBE_MAP;
 	}else{

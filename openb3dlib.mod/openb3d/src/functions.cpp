@@ -11,6 +11,7 @@
 #include "voxel.h"
 #include "octree.h"
 #include "geosphere.h"
+#include "metaball.h"
 
 extern "C" {
 
@@ -401,6 +402,10 @@ bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CountVertices
 */
 int CountVertices(Surface* surf){
 	return surf->CountVertices();
+}
+
+Blob* CreateBlob(Fluid* fluid, float radius, Entity* parent_ent){
+	return Blob::CreateBlob(fluid, radius, parent_ent);
 }
 
 /*
@@ -1273,6 +1278,10 @@ void ShowEntity(Entity* ent){
 	ent->ShowEntity();
 }
 
+void SpriteRenderMode(Sprite* sprite,int mode){
+	sprite->SpriteRenderMode(mode);
+}
+
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=SpriteViewMode">Online Help</a>
 */
@@ -1796,6 +1805,10 @@ void OctreeBlock(OcTree* octree, Mesh* mesh, int level, float X, float Y, float 
 
 void OctreeMesh(OcTree* octree, Mesh* mesh, int level, float X, float Y, float Z, float Near=0.0, float Far=1000.0){
 	octree->OctreeMesh(mesh, level, X, Y, Z, Near, Far);
+}
+
+Fluid* CreateFluid(){
+	return Fluid::CreateFluid();
 }
 
 /*void SetParameter1S(Shader* material, char* name, float v1){

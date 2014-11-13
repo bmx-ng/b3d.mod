@@ -173,12 +173,26 @@ void Stencil::UseStencil(){
 			glDisable(GL_DEPTH_TEST);
 		}
 
-		glBegin(GL_QUADS);
+		/*glBegin(GL_QUADS);
 			glVertex2i(0, 0);
 			glVertex2i(0, 1);
 			glVertex2i(1, 1);
 			glVertex2i(1, 0);
-		glEnd();
+		glEnd();*/
+		if(Global::fx1!=true){
+			Global::fx1=true;
+			glDisableClientState(GL_NORMAL_ARRAY);
+		}
+		if(Global::fx2!=false){
+			Global::fx2=false;
+			glDisableClientState(GL_COLOR_ARRAY);
+		}
+
+		GLfloat q3[] = {0,0,0,1,1,1,1,0};
+	 
+		glVertexPointer(2, GL_FLOAT, 0, q3);
+		glDrawArrays(GL_TRIANGLE_FAN,0,4);
+
 
 		if (cls_zbuffer!=0){
 			glDepthRange(0,1);

@@ -4676,3 +4676,4 @@ int stbi_info_from_callbacks(stbi_io_callbacks const *c, void *user, int *x, int
              on 'test' only check type, not whether we support this variant
       0.50   first released version
 */
+
