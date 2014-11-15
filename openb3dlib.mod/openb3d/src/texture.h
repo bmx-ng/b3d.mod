@@ -67,6 +67,7 @@ public:
 	void BufferToTex(unsigned char* buffer, int frames=0);
 	void TexToBuffer(unsigned char* buffer, int frames=0);
 	void BackBufferToTex(int frames=0);
+	void DepthBufferToTex(int frames=0);
 	void CameraToTex(Camera* cam, int frames=0);
 	string TextureName();
 	static void ClearTextureFilters();

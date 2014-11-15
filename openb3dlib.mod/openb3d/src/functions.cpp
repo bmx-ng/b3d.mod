@@ -23,6 +23,10 @@ void BackBufferToTex(Texture* tex,int frame){
 	tex->BackBufferToTex(frame);
 }
 
+void DepthBufferToTex(Texture* tex,int frame){
+	tex->DepthBufferToTex(frame);
+}
+
 void CameraToTex(Texture* tex, Camera* cam, int frame){
 	tex->CameraToTex(cam,frame);
 }

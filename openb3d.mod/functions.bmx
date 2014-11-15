@@ -141,7 +141,7 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CameraPick">Online doc</a>
 End Rem
 Function CameraPick:TEntity( cam:TCamera, x:Float, y:Float )
-	Return globals.ent.GetEntity( CameraPick_( cam.instance, x, GraphicsHeight()-y ) ) ' inverted y
+	Return globals.ent.EntityValue( CameraPick_( cam.instance, x, GraphicsHeight()-y ) ) ' inverted y
 End Function
 
 Rem
@@ -183,7 +183,7 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CollisionEntity">Online doc</a>
 End Rem
 Function CollisionEntity:TEntity( ent:TEntity, index:Int )
-	Return globals.ent.GetEntity( CollisionEntity_( ent.instance, index ) )
+	Return globals.ent.EntityValue( CollisionEntity_( ent.instance, index ) )
 End Function
 
 Rem
@@ -211,7 +211,10 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CollisionSurface">Online doc</a>
 End Rem
 Function CollisionSurface:TSurface( ent:TEntity, index:Int )
-	Return globals.mesh.GetSurface( CollisionSurface_( ent.instance, index ) )
+	Local instance:Byte Ptr=CollisionSurface_( ent.instance, index )
+	Local surf:TSurface=globals.surf.SurfaceValue( instance )
+	If surf=Null And instance<>Null Then surf=globals.surf.NewSurface( instance )
+	Return surf
 End Function
 
 Rem
@@ -288,8 +291,8 @@ Rem
 bbdoc: undocumented
 End Rem
 Function CreateStencil:TStencil()
-	Local stencil:TStencil=globals.stencil.NewStencil()
-	stencil.instance=CreateStencil_()
+	Local instance:Byte Ptr=CreateStencil_()
+	Local stencil:TStencil=globals.stencil.NewStencil( instance )
 	Return stencil
 End Function
 
@@ -346,7 +349,7 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=EntityCollided">Online doc</a>
 End Rem
 Function EntityCollided:TEntity( ent:TEntity, type_no:Int )
-	Return globals.ent.GetEntity( EntityCollided_( ent.instance, type_no ) )
+	Return globals.ent.EntityValue( EntityCollided_( ent.instance, type_no ) )
 End Function
 
 Rem
@@ -395,7 +398,7 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=EntityPick">Online doc</a>
 End Rem
 Function EntityPick:TEntity( ent:TEntity, Range:Float )
-	Return globals.ent.GetEntity( EntityPick_( ent.instance, Range ) )
+	Return globals.ent.EntityValue( EntityPick_( ent.instance, Range ) )
 End Function
 
 Rem
@@ -416,14 +419,17 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=FindChild">Online doc</a>
 End Rem
 Function FindChild:TEntity( ent:TEntity, child_name:String )
-	Return globals.ent.GetEntity( FindChild_( ent.instance, child_name.ToCString() ) )
+	Return globals.ent.EntityValue( FindChild_( ent.instance, child_name.ToCString() ) )
 End Function
 
 Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=FindSurface">Online doc</a>
 End Rem
 Function FindSurface:TSurface( mesh:TMesh, brush:TBrush )
-	Return globals.mesh.GetSurface( FindSurface_( mesh.instance, brush.instance ) )
+	Local instance:Byte Ptr=FindSurface_( mesh.instance, brush.instance )
+	Local surf:TSurface=globals.surf.SurfaceValue( instance )
+	If surf=Null And instance<>Null Then surf=globals.surf.NewSurface( instance )
+	Return surf
 End Function
 
 Rem
@@ -437,7 +443,7 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=FreeBrush">Online doc</a>
 End Rem
 Function FreeBrush( brush:TBrush )
-	brush.DeleteBrush()
+	brush.DeleteBrush( brush.instance )
 	FreeBrush_( brush.instance )
 End Function
 
@@ -445,7 +451,7 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=FreeEntity">Online doc</a>
 End Rem
 Function FreeEntity( ent:TEntity )
-	ent.DeleteEntity()
+	ent.DeleteEntity( ent.instance )
 	FreeEntity_( ent.instance )
 End Function
 
@@ -453,7 +459,7 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=FreeTexture">Online doc</a>
 End Rem
 Function FreeTexture( tex:TTexture )
-	tex.DeleteTexture()
+	tex.DeleteTexture( tex.instance )
 	FreeTexture_( tex.instance )
 End Function
 
@@ -469,11 +475,8 @@ bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=GetChild">Onl
 End Rem
 Function GetChild:TEntity( ent:TEntity, child_no:Int )
 	Local instance:Byte Ptr=GetChild_( ent.instance, child_no )
-	Local child:TEntity=globals.ent.GetEntity( instance )
-	If child=Null
-		child=globals.ent.NewEntity()
-		child.instance=instance
-	EndIf
+	Local child:TEntity=globals.ent.EntityValue( instance )
+	If child=Null And instance<>Null Then child=globals.ent.NewEntity( instance )
 	Return child
 End Function
 
@@ -481,7 +484,10 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=GetEntityBrush">Online doc</a>
 End Rem
 Function GetEntityBrush:TBrush( ent:TEntity )
-	Return globals.brush.GetBrush( GetEntityBrush_( ent.instance ) )
+	Local instance:Byte Ptr=GetEntityBrush_( ent.instance )
+	Local brush:TBrush=globals.brush.BrushValue( instance )
+	If brush=Null And instance<>Null Then brush=globals.brush.NewBrush( instance )
+	Return brush
 End Function
 
 Rem
@@ -502,21 +508,27 @@ Rem
 bbdoc: undocumented
 End Rem
 Function GetParentEntity:TEntity( ent:TEntity )
-	Return globals.ent.GetEntity( GetParentEntity_( ent.instance ) )
+	Return globals.ent.EntityValue( GetParentEntity_( ent.instance ) )
 End Function
 
 Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=GetSurface">Online doc</a>
 End Rem
 Function GetSurface:TSurface( mesh:TMesh, surf_no:Int )
-	Return globals.mesh.GetSurface( GetSurface_( mesh.instance, surf_no ) )
+	Local instance:Byte Ptr=GetSurface_( mesh.instance, surf_no )
+	Local surf:TSurface=globals.surf.SurfaceValue( instance )
+	If surf=Null And instance<>Null Then surf=globals.surf.NewSurface( instance )
+	Return surf
 End Function
 
 Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=GetSurfaceBrush">Online doc</a>
 End Rem
 Function GetSurfaceBrush:TBrush( surf:TSurface )	
-	Return globals.brush.GetBrush( GetSurfaceBrush_( surf.instance ) )
+	Local instance:Byte Ptr=GetSurfaceBrush_( surf.instance )
+	Local brush:TBrush=globals.brush.BrushValue( instance )
+	If brush=Null And instance<>Null Then brush=globals.brush.NewBrush( instance )
+	Return brush
 End Function
 
 Rem
@@ -558,8 +570,8 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=LoadAnimTexture">Online doc</a>
 End Rem
 Function LoadAnimTexture:TTexture( file:String, flags:Int, frame_width:Int, frame_height:Int, first_frame:Int, frame_count:Int )
-	Local tex:TTexture=globals.tex.NewTexture()
-	tex.instance=LoadAnimTexture_( file.ToCString(), flags, frame_width, frame_height, first_frame, frame_count )
+	Local instance:Byte Ptr=LoadAnimTexture_( file.ToCString(), flags, frame_width, frame_height, first_frame, frame_count )
+	Local tex:TTexture=globals.tex.NewTexture( instance )
 	Return tex
 End Function
 
@@ -644,14 +656,17 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=PickedEntity">Online doc</a>
 End Rem
 Function PickedEntity:TEntity()
-	Return globals.ent.GetEntity( PickedEntity_() )
+	Return globals.ent.EntityValue( PickedEntity_() )
 End Function
 
 Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=PickedSurface">Online doc</a>
 End Rem
 Function PickedSurface:TSurface()
-	Return globals.mesh.GetSurface( PickedSurface_() )
+	Local instance:Byte Ptr=PickedSurface_()
+	Local surf:TSurface=globals.surf.SurfaceValue( instance )
+	If surf=Null And instance<>Null Then surf=globals.surf.NewSurface( instance )
+	Return surf
 End Function
 
 Rem
@@ -736,6 +751,13 @@ bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=ShowEntity">O
 End Rem
 Function ShowEntity( ent:TEntity )
 	ShowEntity_( ent.instance )
+End Function
+
+Rem
+bbdoc: undocumented
+End Rem
+Function SpriteRenderMode( sprite:TSprite, Mode:Int )
+	SpriteRenderMode_( sprite.instance, Mode )
 End Function
 
 Rem
@@ -982,8 +1004,8 @@ Rem
 bbdoc: Load shader from two files, vertex and fragment.
 End Rem
 Function LoadShader:TShader( ShaderName:String, VshaderFileName:String, FshaderFileName:String )
-	Local material:TShader=globals.material.NewShader()
-	material.instance=LoadShader_( ShaderName.ToCString(), VshaderFileName.ToCString(), FshaderFileName.ToCString() )
+	Local instance:Byte Ptr=LoadShader_( ShaderName.ToCString(), VshaderFileName.ToCString(), FshaderFileName.ToCString() )
+	Local material:TShader=globals.material.NewShader( instance )
 	Return material
 End Function
 
@@ -991,8 +1013,8 @@ Rem
 bbdoc: Load shader from two strings, vertex and fragment.
 End Rem
 Function CreateShader:TShader( ShaderName:String, VshaderString:String, FshaderString:String )
-	Local material:TShader=globals.material.NewShader()
-	material.instance=CreateShader_( ShaderName.ToCString(), VshaderString.ToCString(), FshaderString.ToCString() )
+	Local instance:Byte Ptr=CreateShader_( ShaderName.ToCString(), VshaderString.ToCString(), FshaderString.ToCString() )
+	Local material:TShader=globals.material.NewShader( instance )
 	Return material
 End Function
 
@@ -1148,8 +1170,8 @@ Rem
 bbdoc: undocumented
 End Rem
 Function LoadMaterial:TMaterial( filename:String, flags:Int, frame_width:Int, frame_height:Int, first_frame:Int, frame_count:Int )
-	Local mat:TMaterial=globals.mat.NewMaterial()
-	mat.instance=LoadMaterial_( filename.ToCString(), flags, frame_width, frame_height, first_frame, frame_count )
+	Local instance:Byte Ptr=LoadMaterial_( filename.ToCString(), flags, frame_width, frame_height, first_frame, frame_count )
+	Local mat:TMaterial=globals.mat.NewMaterial( instance )
 	Return mat
 End Function
 
@@ -1169,6 +1191,13 @@ bbdoc: Copy a pixmap buffer to texture, buffer must be a byte ptr.
 End Rem
 Function BufferToTex( tex:TTexture, buffer:Byte Ptr, frame:Int=0 )
 	BufferToTex_( tex.instance, buffer, frame )
+End Function
+
+Rem
+bbdoc: Copy the contents of the depthbuffer to a texture.
+End Rem
+Function DepthBufferToTex( tex:TTexture, frame:Int=0 )
+	DepthBufferToTex_( tex.instance, frame )
 End Function
 
 Rem
@@ -1233,8 +1262,8 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CopyEntity">Online doc</a>
 End Rem
 Function CopyEntity:TEntity( ent:TEntity, parent:TEntity=Null )
-	Local copy:TEntity=globals.ent.NewEntity()
-	copy.instance=CopyEntity_( ent.instance, TEntity.EntityExists( parent ) )
+	Local instance:Byte Ptr=CopyEntity_( ent.instance, TEntity.EntityExists( parent ) )
+	Local copy:TEntity=globals.ent.NewEntity( instance )
 	Return copy
 End Function
 
@@ -1242,17 +1271,26 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CopyMesh">Online doc</a>
 End Rem
 Function CopyMesh:TMesh( mesh:TMesh, parent:TEntity=Null )
-	Local copy:TMesh=globals.mesh.NewMesh()
-	copy.instance=CopyMesh_( mesh.instance, TEntity.EntityExists( parent ) )
+	Local instance:Byte Ptr=CopyMesh_( mesh.instance, TEntity.EntityExists( parent ) )
+	Local copy:TMesh=globals.mesh.NewMesh( instance )
 	Return copy
+End Function
+
+Rem
+bbdoc: undocumented
+End Rem
+Function CreateBlob:TBlob( fluid:TFluid, radius:Float, parent_ent:TEntity=Null )
+	Local instance:Byte Ptr=CreateBlob_( fluid, radius, TEntity.EntityExists( parent_ent ) )
+	Local blob:TBlob=globals.blob.NewBlob( instance )
+	Return blob
 End Function
 
 Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreateBrush">Online doc</a>
 End Rem
 Function CreateBrush:TBrush( r:Float=255, g:Float=255, b:Float=255 )
-	Local brush:TBrush=globals.brush.NewBrush()
-	brush.instance=CreateBrush_( r, g, b )
+	Local instance:Byte Ptr=CreateBrush_( r, g, b )
+	Local brush:TBrush=globals.brush.NewBrush( instance )
 	Return brush
 End Function
 
@@ -1260,8 +1298,8 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreateCamera">Online doc</a>
 End Rem
 Function CreateCamera:TCamera( parent:TEntity=Null )
-	Local cam:TCamera=globals.cam.NewCamera()
-	cam.instance=CreateCamera_( TEntity.EntityExists( parent ) )
+	Local instance:Byte Ptr=CreateCamera_( TEntity.EntityExists( parent ) )
+	Local cam:TCamera=globals.cam.NewCamera( instance )
 	Return cam
 End Function
 
@@ -1269,8 +1307,8 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreateCone">Online doc</a>
 End Rem
 Function CreateCone:TMesh( segments:Int=8, solid:Int=True, parent:TEntity=Null )
-	Local mesh:TMesh=globals.mesh.NewMesh()
-	mesh.instance=CreateCone_( segments, solid, TEntity.EntityExists( parent ) )
+	Local instance:Byte Ptr=CreateCone_( segments, solid, TEntity.EntityExists( parent ) )
+	Local mesh:TMesh=globals.mesh.NewMesh( instance )
 	Return mesh
 End Function
 
@@ -1278,8 +1316,8 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreateCylinder">Online doc</a>
 End Rem
 Function CreateCylinder:TMesh( segments:Int=8, solid:Int=True, parent:TEntity=Null )
-	Local mesh:TMesh=globals.mesh.NewMesh()
-	mesh.instance=CreateCylinder_( segments, solid, TEntity.EntityExists( parent ) )
+	Local instance:Byte Ptr=CreateCylinder_( segments, solid, TEntity.EntityExists( parent ) )
+	Local mesh:TMesh=globals.mesh.NewMesh( instance )
 	Return mesh
 End Function
 
@@ -1287,17 +1325,26 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreateCube">Online doc</a>
 End Rem
 Function CreateCube:TMesh( parent:TEntity=Null )
-	Local mesh:TMesh=globals.mesh.NewMesh()
-	mesh.instance=CreateCube_( TEntity.EntityExists( parent ) )
+	Local instance:Byte Ptr=CreateCube_( TEntity.EntityExists( parent ) )
+	Local mesh:TMesh=globals.mesh.NewMesh( instance )
 	Return mesh
 End Function
 
 Rem
 bbdoc: undocumented
 End Rem
+Function CreateFluid:TFluid()
+	Local instance:Byte Ptr=CreateFluid_()
+	Local fluid:TFluid=globals.fluid.NewFluid( instance )
+	Return fluid
+End Function
+
+Rem
+bbdoc: undocumented
+End Rem
 Function CreateGeosphere:TGeosphere( size:Int, parent:TEntity=Null )
-	Local geo:TGeosphere=globals.geo.NewGeosphere()
-	geo.instance=CreateGeosphere_( size, TEntity.EntityExists( parent ) )
+	Local instance:Byte Ptr=CreateGeosphere_( size, TEntity.EntityExists( parent ) )
+	Local geo:TGeosphere=globals.geo.NewGeosphere( instance )
 	Return geo
 End Function
 
@@ -1305,8 +1352,8 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreateMesh">Online doc</a>
 End Rem
 Function CreateMesh:TMesh( parent:TEntity=Null )
-	Local mesh:TMesh=globals.mesh.NewMesh()
-	mesh.instance=CreateMesh_( TEntity.EntityExists( parent ) )
+	Local instance:Byte Ptr=CreateMesh_( TEntity.EntityExists( parent ) )
+	Local mesh:TMesh=globals.mesh.NewMesh( instance )
 	Return mesh
 End Function
 
@@ -1314,8 +1361,8 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreateLight">Online doc</a>
 End Rem
 Function CreateLight:TLight( light_type:Int=1, parent:TEntity=Null )
-	Local light:TLight=globals.light.NewLight()
-	light.instance=CreateLight_( light_type, TEntity.EntityExists( parent ) )
+	Local instance:Byte Ptr=CreateLight_( light_type, TEntity.EntityExists( parent ) )
+	Local light:TLight=globals.light.NewLight( instance )
 	Return light
 End Function
 
@@ -1323,8 +1370,8 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreatePivot">Online doc</a>
 End Rem
 Function CreatePivot:TPivot( parent:TEntity=Null )
-	Local piv:TPivot=globals.piv.NewPivot()
-	piv.instance=CreatePivot_( TEntity.EntityExists( parent ) )
+	Local instance:Byte Ptr=CreatePivot_( TEntity.EntityExists( parent ) )
+	Local piv:TPivot=globals.piv.NewPivot( instance )
 	Return piv
 End Function
 
@@ -1332,8 +1379,8 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreatePlane">Online doc</a>
 End Rem
 Function CreatePlane:TMesh( divisions:Int=1, parent:TEntity=Null )
-	Local mesh:TMesh=globals.mesh.NewMesh()
-	mesh.instance=CreatePlane_( divisions, TEntity.EntityExists( parent ) )
+	Local instance:Byte Ptr=CreatePlane_( divisions, TEntity.EntityExists( parent ) )
+	Local mesh:TMesh=globals.mesh.NewMesh( instance )
 	Return mesh
 End Function
 
@@ -1341,8 +1388,8 @@ Rem
 bbdoc: undocumented
 End Rem
 Function CreateQuad:TMesh( parent:TEntity=Null )
-	Local mesh:TMesh=globals.mesh.NewMesh()
-	mesh.instance=CreateQuad_( TEntity.EntityExists( parent ) )
+	Local instance:Byte Ptr=CreateQuad_( TEntity.EntityExists( parent ) )
+	Local mesh:TMesh=globals.mesh.NewMesh( instance )
 	Return mesh
 End Function
 
@@ -1350,8 +1397,8 @@ Rem
 bbdoc: undocumented
 End Rem
 Function CreateShadow:TShadowObject( parent:TMesh, Static:Int=False )
-	Local shad:TShadowObject=globals.shad.NewShadowObject()
-	shad.instance=CreateShadow_( parent.instance, Static )
+	Local instance:Byte Ptr=CreateShadow_( parent.instance, Static )
+	Local shad:TShadowObject=globals.shad.NewShadowObject( instance )
 	Return shad
 End Function
 
@@ -1359,8 +1406,8 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreateSphere">Online doc</a>
 End Rem
 Function CreateSphere:TMesh( segments:Int=8, parent:TEntity=Null )
-	Local mesh:TMesh=globals.mesh.NewMesh()
-	mesh.instance=CreateSphere_( segments, TEntity.EntityExists( parent ) )
+	Local instance:Byte Ptr=CreateSphere_( segments, TEntity.EntityExists( parent ) )
+	Local mesh:TMesh=globals.mesh.NewMesh( instance )
 	Return mesh
 End Function
 
@@ -1368,8 +1415,8 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreateSprite">Online doc</a>
 End Rem
 Function CreateSprite:TSprite( parent:TEntity=Null )
-	Local sprite:TSprite=globals.sprite.NewSprite()
-	sprite.instance=CreateSprite_( TEntity.EntityExists( parent ) )
+	Local instance:Byte Ptr=CreateSprite_( TEntity.EntityExists( parent ) )
+	Local sprite:TSprite=globals.sprite.NewSprite( instance )
 	Return sprite
 End Function
 
@@ -1377,8 +1424,8 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreateSurface">Online doc</a>
 End Rem
 Function CreateSurface:TSurface( mesh:TMesh, brush:TBrush=Null )
-	Local surf:TSurface=globals.mesh.NewSurface()
-	surf.instance=CreateSurface_( mesh.instance, globals.brush.BrushExists( brush ) )
+	Local instance:Byte Ptr=CreateSurface_( mesh.instance, globals.brush.BrushExists( brush ) )
+	Local surf:TSurface=globals.surf.NewSurface( instance )
 	Return surf
 End Function
 
@@ -1386,8 +1433,8 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreateTerrain">Online doc</a>
 End Rem
 Function CreateTerrain:TTerrain( size:Int, parent:TEntity=Null )
-	Local terr:TTerrain=globals.terr.NewTerrain()
-	terr.instance=CreateTerrain_( size, TEntity.EntityExists( parent ) )
+	Local instance:Byte Ptr=CreateTerrain_( size, TEntity.EntityExists( parent ) )
+	Local terr:TTerrain=globals.terr.NewTerrain( instance )
 	Return terr
 End Function
 
@@ -1395,8 +1442,8 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreateTexture">Online doc</a>
 End Rem
 Function CreateTexture:TTexture( width:Int, height:Int, flags:Int=9, frames:Int=1 )
-	Local tex:TTexture=globals.tex.NewTexture()
-	tex.instance=CreateTexture_( width, height, flags, frames )
+	Local instance:Byte Ptr=CreateTexture_( width, height, flags, frames )
+	Local tex:TTexture=globals.tex.NewTexture( instance )
 	Return tex
 End Function
 
@@ -1404,8 +1451,8 @@ Rem
 bbdoc: undocumented
 End Rem
 Function CreateVoxelSprite:TVoxelSprite( slices:Int=64, parent:TEntity=Null )
-	Local voxelspr:TVoxelSprite=globals.voxelspr.NewVoxelSprite()
-	voxelspr.instance=CreateVoxelSprite_( slices, TEntity.EntityExists( parent ) )
+	Local instance:Byte Ptr=CreateVoxelSprite_( slices, TEntity.EntityExists( parent ) )
+	Local voxelspr:TVoxelSprite=globals.voxelspr.NewVoxelSprite( instance )
 	Return voxelspr
 End Function
 
@@ -1504,7 +1551,7 @@ Rem
 bbdoc: undocumented
 End Rem
 Function FreeShadow( shad:TShadowObject )
-	shad.DeleteShadowObject()
+	shad.DeleteShadowObject( shad.instance )
 	FreeShadow_( shad.instance )
 End Function
 
@@ -1512,22 +1559,25 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=GetBrushTexture">Online doc</a>
 End Rem
 Function GetBrushTexture:TTexture( brush:TBrush, index:Int=0 )
-	Return globals.tex.GetTexture( GetBrushTexture_( brush.instance, index ) )
+	Local instance:Byte Ptr=GetBrushTexture_( brush.instance, index )
+	Local tex:TTexture=globals.tex.TextureValue( instance )
+	If tex=Null And instance<>Null Then tex=globals.tex.NewTexture( instance )
+	Return tex
 End Function
 
 Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=LinePick">Online doc</a>
 End Rem
 Function LinePick:TEntity( x:Float, y:Float, z:Float, dx:Float, dy:Float, dz:Float, radius:Float=0 )
-	Return globals.ent.GetEntity( LinePick_( x, y, z, dx, dy, dz, radius ) )
+	Return globals.ent.EntityValue( LinePick_( x, y, z, dx, dy, dz, radius ) )
 End Function
 
 Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=LoadAnimMesh">Online doc</a>
 End Rem
 Function LoadAnimMesh:TMesh( file:String, parent:TEntity=Null )
-	Local mesh:TMesh=globals.mesh.NewMesh()
-	mesh.instance=LoadAnimMesh_( file.ToCString(), TEntity.EntityExists( parent ) )
+	Local instance:Byte Ptr=LoadAnimMesh_( file.ToCString(), TEntity.EntityExists( parent ) )
+	Local mesh:TMesh=globals.mesh.NewMesh( instance )
 	Return mesh
 End Function
 
@@ -1535,8 +1585,8 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=LoadBrush">Online doc</a>
 End Rem
 Function LoadBrush:TBrush( file:String, flags:Int=1, u_scale:Float=1, v_scale:Float=1 )
-	Local brush:TBrush=globals.brush.NewBrush()
-	brush.instance=LoadBrush_( file.ToCString(), flags, u_scale, v_scale )
+	Local instance:Byte Ptr=LoadBrush_( file.ToCString(), flags, u_scale, v_scale )
+	Local brush:TBrush=globals.brush.NewBrush( instance )
 	Return brush
 End Function
 
@@ -1544,8 +1594,8 @@ Rem
 bbdoc: undocumented
 End Rem
 Function LoadGeosphere:TGeosphere( file:String, parent:TEntity=Null )
-	Local geo:TGeosphere=globals.geo.NewGeosphere()
-	geo.instance=LoadGeosphere_( file.ToCString(), TEntity.EntityExists( parent ) )
+	Local instance:Byte Ptr=LoadGeosphere_( file.ToCString(), TEntity.EntityExists( parent ) )
+	Local geo:TGeosphere=globals.geo.NewGeosphere( instance )
 	Return geo
 End Function
 
@@ -1553,8 +1603,8 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=LoadMesh">Online doc</a>
 End Rem
 Function LoadMesh:TMesh( file:String, parent:TEntity=Null )
-	Local mesh:TMesh=globals.mesh.NewMesh()
-	mesh.instance=LoadMesh_( file.ToCString(), TEntity.EntityExists( parent ) )
+	Local instance:Byte Ptr=LoadMesh_( file.ToCString(), TEntity.EntityExists( parent ) )
+	Local mesh:TMesh=globals.mesh.NewMesh( instance )
 	Return mesh
 End Function
 
@@ -1562,8 +1612,8 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=LoadTerrain">Online doc</a>
 End Rem
 Function LoadTerrain:TTerrain( file:String, parent:TEntity=Null )
-	Local terr:TTerrain=globals.terr.NewTerrain()
-	terr.instance=LoadTerrain_( file.ToCString(), TEntity.EntityExists( parent ) )
+	Local instance:Byte Ptr=LoadTerrain_( file.ToCString(), TEntity.EntityExists( parent ) )
+	Local terr:TTerrain=globals.terr.NewTerrain( instance )
 	Return terr
 End Function
 
@@ -1571,8 +1621,8 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=LoadTexture">Online doc</a>
 End Rem
 Function LoadTexture:TTexture( file:String, flags:Int=1 )
-	Local tex:TTexture=globals.tex.NewTexture()
-	tex.instance=LoadTexture_( file.ToCString(), flags )
+	Local instance:Byte Ptr=LoadTexture_( file.ToCString(), flags )
+	Local tex:TTexture=globals.tex.NewTexture( instance )
 	Return tex
 End Function
 
@@ -1580,8 +1630,8 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=LoadSprite">Online doc</a>
 End Rem
 Function LoadSprite:TSprite( tex_file:String, tex_flag:Int=1, parent:TEntity=Null )
-	Local sprite:TSprite=globals.sprite.NewSprite()
-	sprite.instance=LoadSprite_( tex_file.ToCString(), tex_flag, TEntity.EntityExists( parent ) )
+	Local instance:Byte Ptr=LoadSprite_( tex_file.ToCString(), tex_flag, TEntity.EntityExists( parent ) )
+	Local sprite:TSprite=globals.sprite.NewSprite( instance )
 	Return sprite
 End Function
 
@@ -1589,8 +1639,8 @@ Rem
 bbdoc: undocumented
 End Rem
 Function MeshCSG:TMesh( m1:TMesh, m2:TMesh, method_no:Int=1 )
-	Local mesh:TMesh=globals.mesh.NewMesh()
-	mesh.instance=MeshCSG_( m1.instance, m2.instance, method_no )
+	Local instance:Byte Ptr=MeshCSG_( m1.instance, m2.instance, method_no )
+	Local mesh:TMesh=globals.mesh.NewMesh( instance )
 	Return mesh
 End Function
 
@@ -1612,8 +1662,8 @@ Rem
 bbdoc: Like CopyMesh but for instancing effects.
 End Rem
 Function RepeatMesh:TMesh( mesh:TMesh, parent:TEntity=Null )
-	Local copy:TMesh=globals.mesh.NewMesh()
-	copy.instance=RepeatMesh_( mesh.instance, TEntity.EntityExists( parent ) )
+	Local instance:Byte Ptr=RepeatMesh_( mesh.instance, TEntity.EntityExists( parent ) )
+	Local copy:TMesh=globals.mesh.NewMesh( instance )
 	Return copy
 End Function
 
@@ -1749,8 +1799,8 @@ Rem
 bbdoc: undocumented
 End Rem
 Function CreateOcTree:TOcTree( w:Float, h:Float, d:Float, parent_ent:TEntity=Null )
-	Local octree:TOcTree=globals.octree.NewOcTree()
-	octree.instance=CreateOcTree_( w, h, d, TEntity.EntityExists( parent_ent ) )
+	Local instance:Byte Ptr=CreateOcTree_( w, h, d, TEntity.EntityExists( parent_ent ) )
+	Local octree:TOcTree=globals.octree.NewOcTree( instance )
 	Return octree
 End Function
 

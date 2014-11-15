@@ -24,7 +24,7 @@
 
 Strict
 
-Import brl.linkedlist
+Import brl.map
 Import brl.Graphics
 Import b3d.OpenB3dLib
 
@@ -36,6 +36,7 @@ Extern
 	Function BackBufferToTex_( tex:Byte Ptr, frame:Int )="BackBufferToTex"
 	Function BufferToTex_( tex:Byte Ptr, buffer:Byte Ptr, frame:Int )="BufferToTex"
 	Function CameraToTex_( tex:Byte Ptr, cam:Byte Ptr, frame:Int )="CameraToTex"
+	Function DepthBufferToTex_( tex:Byte Ptr, frame:Int )="DepthBufferToTex"
 	Function TexToBuffer_( tex:Byte Ptr, buffer:Byte Ptr, frame:Int )="TexToBuffer"
 ' Minib3d Only
 	Function MeshCullRadius_( ent:Byte Ptr, radius:Float )="MeshCullRadius"
@@ -90,11 +91,13 @@ Extern
 	Function CountSurfaces_:Int( mesh:Byte Ptr )="CountSurfaces"
 	Function CountTriangles_:Int( surf:Byte Ptr )="CountTriangles"
 	Function CountVertices_:Int( surf:Byte Ptr )="CountVertices"
+	Function CreateBlob_:Byte Ptr( fluid:Byte Ptr, radius:Float, parent_ent:Byte Ptr )="CreateBlob"
 	Function CreateBrush_:Byte Ptr( r:Float, g:Float, b:Float )="CreateBrush"
 	Function CreateCamera_:Byte Ptr( parent:Byte Ptr )="CreateCamera"
 	Function CreateCone_:Byte Ptr( segments:Int, solid:Int, parent:Byte Ptr )="CreateCone"
 	Function CreateCylinder_:Byte Ptr( segments:Int, solid:Int, parent:Byte Ptr )="CreateCylinder"
 	Function CreateCube_:Byte Ptr( parent:Byte Ptr )="CreateCube"
+	Function CreateFluid_:Byte Ptr()="CreateFluid"
 	Function CreateGeosphere_:Byte Ptr( size:Int, parent:Byte Ptr )="CreateGeosphere"
 	Function CreateMesh_:Byte Ptr( parent:Byte Ptr )="CreateMesh"
 	Function CreateLight_:Byte Ptr( light_type:Int, parent:Byte Ptr )="CreateLight"
@@ -215,6 +218,7 @@ Extern
 	Function SetCubeFace_( tex:Byte Ptr, face:Int )="SetCubeFace"
 	Function SetCubeMode_( tex:Byte Ptr, Mode:Int )="SetCubeMode"
 	Function ShowEntity_( ent:Byte Ptr )="ShowEntity"
+	Function SpriteRenderMode_( sprite:Byte Ptr, Mode:Int )="SpriteRenderMode"
 	Function SpriteViewMode_( sprite:Byte Ptr, Mode:Int )="SpriteViewMode"
 	Function StencilAlpha_( stencil:Byte Ptr, a:Float )="StencilAlpha"
 	Function StencilClsColor_( stencil:Byte Ptr, r:Float, g:Float, b:Float )="StencilClsColor"
@@ -303,8 +307,6 @@ End Extern
 
 Private
 
-'Global libDirs$[] = ["" , CurrentDir()+"/" , "BlitzMax/mod/angros.mod/openb3d.mod/"] ' install location
-Global hLib:Int
 Global globals:TGlobal=New TGlobal
 
 Public
@@ -383,9 +385,11 @@ End Function
 
 Type TGlobal
 
+	Global blob:TBlob=New TBlob
 	Global brush:TBrush=New TBrush
 	Global cam:TCamera=New TCamera
 	Global ent:TEntity=New TEntity
+	Global fluid:TFluid=New TFluid
 	Global geo:TGeosphere=New TGeosphere
 	Global light:TLight=New TLight
 	Global mat:TMaterial=New TMaterial
@@ -396,46 +400,53 @@ Type TGlobal
 	Global shad:TShadowObject=New TShadowObject
 	Global sprite:TSprite=New TSprite
 	Global stencil:TStencil=New TStencil
+	Global surf:TSurface=New TSurface
 	Global terr:TTerrain=New TTerrain
 	Global tex:TTexture=New TTexture
 	Global voxelspr:TVoxelSprite=New TVoxelSprite
 
 End Type
 
+Rem
+bbdoc: Blob entity
+End Rem
+Type TBlob Extends TEntity
+
+	Method NewBlob:TBlob( inst:Byte Ptr )
+	
+		Local blob:TBlob=New TBlob
+		entity_map.Insert( String(Long(inst)), blob )
+		blob.instance=inst
+		Return blob
+		
+	End Method
+	
+End Type
+
 Type TBrush
 
-	Global brush_list:TList=CreateList()
+	Global brush_map:TMap=New TMap
 
 	Field instance:Byte Ptr
-	Field last_instance:Byte Ptr
-	Field last_brush:TBrush
 	
-	Method NewBrush:TBrush()
+	Method NewBrush:TBrush( inst:Byte Ptr )
 	
 		Local brush:TBrush=New TBrush
-		ListAddLast( brush_list, brush )
+		brush_map.Insert( String(Long(inst)), brush )
+		brush.instance=inst
 		Return brush
 		
 	End Method
 	
-	Method DeleteBrush()
+	Method DeleteBrush( inst:Byte Ptr )
 	
-		ListRemove( brush_list, Self )
+		brush_map.Remove( String(Long(inst)) )
 	
 	End Method
 	
-	Method GetBrush:TBrush( instance:Byte Ptr )
+	Method BrushValue:TBrush( inst:Byte Ptr )
 	
-		If last_instance=instance Then Return last_brush
-		
-		For Local brush:TBrush=EachIn brush_list
-			If brush.instance=instance
-				last_instance=instance
-				last_brush=brush
-				Return brush
-			EndIf
-		Next
-		Return Null
+		Return TBrush( brush_map.ValueForKey( String(Long(inst)) ) )
 	
 	End Method
 	
@@ -453,10 +464,11 @@ End Type
 
 Type TCamera Extends TEntity
 
-	Method NewCamera:TCamera()
+	Method NewCamera:TCamera( inst:Byte Ptr )
 	
 		Local cam:TCamera=New TCamera
-		ListAddLast( entity_list, cam )
+		entity_map.Insert( String(Long(inst)), cam )
+		cam.instance=inst
 		Return cam
 		
 	End Method
@@ -465,41 +477,31 @@ End Type
 
 Type TEntity
 
-	Global entity_list:TList=CreateList()
+	Global entity_map:TMap=New TMap
 
 	Field instance:Byte Ptr
-	Field last_instance:Byte Ptr
-	Field last_ent:TEntity
 	
-	Method NewEntity:TEntity()
+	Method NewEntity:TEntity(inst:Byte Ptr)
 
 		Local ent:TEntity=New TEntity
-		ListAddLast( entity_list, ent )
+		entity_map.Insert( String(Long(inst)), ent )
+		ent.instance=inst
 		Return ent
 		
 	End Method
 	
-	Method DeleteEntity()
+	Method DeleteEntity(inst:Byte Ptr)
 	
-		ListRemove( entity_list, Self )
-	
-	End Method
-	
-	Method GetEntity:TEntity( instance:Byte Ptr )
-	
-		If last_instance=instance Then Return last_ent
-		
-		For Local ent:TEntity=EachIn entity_list
-			If ent.instance=instance
-				last_instance=instance
-				last_ent=ent
-				Return ent
-			EndIf
-		Next
-		Return Null
+		entity_map.Remove( String(Long(inst)) )
 	
 	End Method
+
+	Method EntityValue:TEntity( inst:Byte Ptr )
 	
+		Return TEntity( entity_map.ValueForKey( String(Long(inst)) ) )
+	
+	End Method
+
 	Function EntityExists:Byte Ptr( ent:TEntity )
 	
 		If ent=Null
@@ -513,12 +515,13 @@ Type TEntity
 	' Recursively counts all children of an entity.
 	Function CountAllChildren:Int( ent:TEntity, no_children:Int=0 )
 
-		Local children%=CountChildren_( ent.instance )
+		Local children%=CountChildren( ent )
 		
-		For Local ent2:Int=1 To children
-			no_children=no_children+1
-			no_children=CountAllChildren( GetChild( ent, ent2 ), no_children)
+		For Local id:Int=1 To children
+			no_children :+ 1
+			no_children=CountAllChildren( GetChild( ent, id ), no_children)
 		Next
+		
 		Return no_children
 		
 	End Function
@@ -527,18 +530,36 @@ Type TEntity
 	Method GetChildFromAll:TEntity( child_no:Int, no_children:Int Var, ent:TEntity=Null )
 
 		If ent=Null Then ent=Self
-		Local ent3:TEntity=Null
-		Local children%= CountChildren_( ent.instance )
 		
-		For Local ent2:Int=1 To children
+		Local ent2:TEntity=Null
+		Local children%=CountChildren( ent )
+		
+		For Local id:Int=1 To children
 			no_children=no_children+1
-			If no_children=child_no Then Return GetChild( ent, ent2 )
+			If no_children=child_no Then Return GetChild( ent, id )
 			
-			If ent3=Null
-				ent3=GetChildFromAll( child_no, no_children, GetChild( ent, ent2 ) )
+			If ent2=Null
+				ent2=GetChildFromAll( child_no, no_children, GetChild( ent, id ) )
 			EndIf
 		Next
-		Return ent3
+		
+		Return ent2
+		
+	End Method
+	
+End Type
+
+Rem
+bbdoc: Fluid mesh entity
+End Rem
+Type TFluid Extends TMesh
+
+	Method NewFluid:TFluid( inst:Byte Ptr )
+	
+		Local fluid:TFluid=New TFluid
+		entity_map.Insert( String(Long(inst)), fluid )
+		fluid.instance=inst
+		Return fluid
 		
 	End Method
 	
@@ -546,10 +567,11 @@ End Type
 
 Type TGeosphere Extends TTerrain
 
-	Method NewGeosphere:TGeosphere()
+	Method NewGeosphere:TGeosphere(inst:Byte Ptr)
 	
 		Local geo:TGeosphere=New TGeosphere
-		ListAddLast( entity_list, geo )
+		entity_map.Insert( String(Long(inst)), geo )
+		geo.instance=inst
 		Return geo
 		
 	End Method
@@ -558,10 +580,11 @@ End Type
 
 Type TLight Extends TEntity
 
-	Method NewLight:TLight()
+	Method NewLight:TLight( inst:Byte Ptr )
 	
 		Local light:TLight=New TLight
-		ListAddLast( entity_list, light )
+		entity_map.Insert( String(Long(inst)), light )
+		light.instance=inst
 		Return light
 		
 	End Method
@@ -570,10 +593,11 @@ End Type
 
 Type TMaterial Extends TTexture
 
-	Method NewMaterial:TMaterial()
+	Method NewMaterial:TMaterial( inst:Byte Ptr )
 	
 		Local mat:TMaterial=New TMaterial
-		ListAddLast( tex_list, mat )
+		tex_map.Insert( String(Long(inst)), mat )
+		mat.instance=inst
 		Return mat
 		
 	End Method
@@ -582,50 +606,24 @@ End Type
 
 Type TMesh Extends TEntity
 
-	Global surf_list:TList=CreateList()
-	
-	Field last_surf_instance:Byte Ptr
-	Field last_surf:TSurface
-	
-	Method NewMesh:TMesh()
+	Method NewMesh:TMesh( inst:Byte Ptr )
 	
 		Local mesh:TMesh=New TMesh
-		ListAddLast( entity_list, mesh )
+		entity_map.Insert( String(Long(inst)), mesh )
+		mesh.instance=inst
 		Return mesh
 		
-	End Method
-	
-	Method NewSurface:TSurface()
-	
-		Local surf:TSurface=New TSurface
-		ListAddLast( surf_list, surf )
-		Return surf
-		
-	End Method
-	
-	Method GetSurface:TSurface( instance:Byte Ptr )
-	
-		If last_surf_instance=instance Then Return last_surf
-		
-		For Local surf:TSurface=EachIn surf_list
-			If surf.instance=instance
-				last_surf_instance=instance
-				last_surf=surf
-				Return surf
-			EndIf
-		Next
-		Return Null
-	
 	End Method
 	
 End Type
 
 Type TOcTree Extends TTerrain
 
-	Method NewOcTree:TOcTree()
+	Method NewOcTree:TOcTree( inst:Byte Ptr )
 	
 		Local octree:TOcTree=New TOcTree
-		ListAddLast( entity_list, octree )
+		entity_map.Insert( String(Long(inst)), octree )
+		octree.instance=inst
 		Return octree
 		
 	End Method
@@ -634,10 +632,11 @@ End Type
 
 Type TPivot Extends TEntity
 
-	Method NewPivot:TPivot()
+	Method NewPivot:TPivot( inst:Byte Ptr )
 	
 		Local piv:TPivot=New TPivot
-		ListAddLast( entity_list, piv )
+		entity_map.Insert( String(Long(inst)), piv )
+		piv.instance=inst
 		Return piv
 		
 	End Method
@@ -648,9 +647,10 @@ Type TShader
 
 	Field instance:Byte Ptr
 	
-	Method NewShader:TShader()
+	Method NewShader:TShader( inst:Byte Ptr )
 	
 		Local material:TShader=New TShader
+		material.instance=inst
 		Return material
 		
 	End Method
@@ -659,21 +659,22 @@ End Type
 
 Type TShadowObject
 
-	Global shad_list:TList=CreateList()
+	Global shad_map:TMap=New TMap
 
 	Field instance:Byte Ptr
 	
-	Method NewShadowObject:TShadowObject()
+	Method NewShadowObject:TShadowObject( inst:Byte Ptr )
 	
 		Local shad:TShadowObject=New TShadowObject
-		ListAddLast( shad_list, shad )
+		shad_map.Insert( String(Long(inst)), shad )
+		shad.instance=inst
 		Return shad
 		
 	End Method
 	
-	Method DeleteShadowObject()
+	Method DeleteShadowObject( inst:Byte Ptr )
 	
-		ListRemove( shad_list, Self )
+		shad_map.Remove( String(Long(inst)) )
 	
 	End Method
 	
@@ -681,10 +682,11 @@ End Type
 
 Type TSprite Extends TMesh
 
-	Method NewSprite:TSprite()
+	Method NewSprite:TSprite( inst:Byte Ptr )
 	
 		Local sprite:TSprite=New TSprite
-		ListAddLast( entity_list, sprite )
+		entity_map.Insert( String(Long(inst)), sprite )
+		sprite.instance=inst
 		Return sprite
 		
 	End Method
@@ -695,67 +697,85 @@ Type TStencil
 
 	Field instance:Byte Ptr
 	
-	Method NewStencil:TStencil()
+	Method NewStencil:TStencil( inst:Byte Ptr )
 	
 		Local stencil:TStencil=New TStencil
+		stencil.instance=inst
 		Return stencil
 		
 	End Method
 	
 End Type
 
+Rem
+bbdoc: Surface
+End Rem
 Type TSurface
 
+	Global surf_map:TMap=New TMap
+	
 	Field instance:Byte Ptr
+	
+	Method NewSurface:TSurface( inst:Byte Ptr )
+	
+		Local surf:TSurface=New TSurface
+		surf_map.Insert( String(Long(inst)), surf )
+		surf.instance=inst
+		Return surf
+		
+	End Method
+	
+	Method SurfaceValue:TSurface( inst:Byte Ptr )
+	
+		Return TSurface( surf_map.ValueForKey( String(Long(inst)) ) )
+	
+	End Method
 	
 End Type
 
+Rem
+bbdoc: Terrain entity
+End Rem
 Type TTerrain Extends TEntity
 
-	Method NewTerrain:TTerrain()
+	Method NewTerrain:TTerrain( inst:Byte Ptr )
 	
 		Local terr:TTerrain=New TTerrain
-		ListAddLast( entity_list, terr )
+		entity_map.Insert( String(Long(inst)), terr )
+		terr.instance=inst
 		Return terr
 		
 	End Method
 	
 End Type
 
+Rem
+bbdoc: Texture
+End Rem
 Type TTexture
 
-	Global tex_list:TList=CreateList()
+	Global tex_map:TMap=New TMap
 
 	Field instance:Byte Ptr
-	Field last_instance:Byte Ptr
-	Field last_tex:TTexture
 	
-	Method NewTexture:TTexture()
+	Method NewTexture:TTexture( inst:Byte Ptr )
 	
 		Local tex:TTexture=New TTexture
-		ListAddLast( tex_list, tex )
+		tex_map.Insert( String(Long(inst)), tex )
+		tex.instance=inst
 		Return tex
 		
 	End Method
 	
-	Method DeleteTexture()
+	Method DeleteTexture( inst:Byte Ptr )
 	
-		ListRemove( tex_list, Self )
+		tex_map.Remove( String(Long(inst)) )
 	
 	End Method
 	
-	Method GetTexture:TTexture( instance:Byte Ptr )
+	Method TextureValue:TTexture( inst:Byte Ptr )
 	
-		If last_instance=instance Then Return last_tex
-		
-		For Local tex:TTexture=EachIn tex_list
-			If tex.instance=instance
-				last_instance=instance
-				last_tex=tex
-				Return tex
-			EndIf
-		Next
-		Return Null
+		Return TTexture( tex_map.ValueForKey( String(Long(inst)) ) )
 	
 	End Method
 	
@@ -763,14 +783,15 @@ End Type
 
 Type TVoxelSprite Extends TMesh
 
-	Method NewVoxelSprite:TVoxelSprite()
+	Method NewVoxelSprite:TVoxelSprite( inst:Byte Ptr )
 	
 		Local voxelspr:TVoxelSprite=New TVoxelSprite
-		ListAddLast( entity_list, voxelspr )
+		entity_map.Insert( String(Long(inst)), voxelspr )
+		voxelspr.instance=inst
 		Return voxelspr
 		
 	End Method
-	
+		
 End Type
 
 

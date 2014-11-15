@@ -28,7 +28,7 @@ Module b3d.openb3dlib
 
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: Wrapper - zlib/libpng"
-ModuleInfo "License: OpenB3D - LGPL"
+ModuleInfo "License: OpenB3D - LGPL with static linking exception"
 ModuleInfo "Copyright: Wrapper - 2014 Mark Mcvittie, Bruce A Henderson"
 ModuleInfo "Copyright: Openb3d - Angelo Rosina"
 

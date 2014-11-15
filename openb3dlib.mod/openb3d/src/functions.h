@@ -6,6 +6,7 @@ extern "C" {
 
 void BufferToTex(Texture* tex,unsigned char* buffer, int frame);
 void BackBufferToTex(Texture* tex,int frame);
+void DepthBufferToTex(Texture* tex,int frame);
 void TexToBuffer(Texture* tex,unsigned char* buffer, int frame);
 
 

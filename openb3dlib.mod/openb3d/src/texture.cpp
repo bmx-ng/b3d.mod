@@ -433,6 +433,12 @@ void Texture::BackBufferToTex(int frame){
 	}
 }
 
+void Texture::DepthBufferToTex(int frame){
+		glBindTexture (GL_TEXTURE_2D,texture);
+		glCopyTexImage2D(GL_TEXTURE_2D,0,GL_DEPTH_COMPONENT,0,Global::height-height,width,height,0);
+		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
+}
+
 void Texture::CameraToTex(Camera* cam, int frame){
 
 	GLenum target;
