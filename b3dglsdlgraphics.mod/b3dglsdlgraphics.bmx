@@ -62,26 +62,9 @@ Function Graphics3D( width%, height%, depth%=0, Mode%=0, rate%=60, flags%=-1, us
 		Graphics( width,height,depth,rate,flags )		
 	EndIf
 	
-	glewInit() ' required for ARB funcs
-
-	' save the Max2D settings for later - by Oddball
-	glPushAttrib(GL_ALL_ATTRIB_BITS)
-	glPushClientAttrib(GL_CLIENT_ALL_ATTRIB_BITS)
-	glMatrixMode(GL_MODELVIEW)
-	glPushMatrix()
-	glMatrixMode(GL_PROJECTION)
-	glPushMatrix()
-	glMatrixMode(GL_TEXTURE)
-	glPushMatrix()
-	glMatrixMode(GL_COLOR)
-	glPushMatrix()
+	TGlobal.GraphicsInit()
 	
 	Graphics3D_( width,height,depth,Mode,rate )
-	
-	glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL,GL_SEPARATE_SPECULAR_COLOR)
-	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER,GL_TRUE)
-	
-	glClearDepth(1.0)
 	
 End Function
 
@@ -92,15 +75,17 @@ End Rem
 Function Text( x%, y%, str$ )
 
 	' set active texture to texture 0 so gldrawtext will work correctly
-	glActiveTextureARB(GL_TEXTURE0)
-	glClientActiveTextureARB(GL_TEXTURE0)
-
+	If THardwareInfo.VBOSupport 'SMALLFIXES hack to keep non vbo GFX from crashing
+		glActiveTextureARB(GL_TEXTURE0)
+		glClientActiveTextureARB(GL_TEXTURE0)
+	EndIf
+		
 	glDisable(GL_LIGHTING)
 	glColor3f(1.0,1.0,1.0)
 	
 	' enable blend to hide text background
 	glEnable(GL_BLEND)
-	GLDrawText( str,x,y )
+	GLDrawText str,x,y
 	
 	glDisable(GL_BLEND)
 	glEnable(GL_LIGHTING)

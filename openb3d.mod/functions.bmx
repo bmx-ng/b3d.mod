@@ -1942,6 +1942,13 @@ Function RenderWorld()
 End Function
 
 Rem
+bbdoc: Set render (client or server-side) state capability flags
+End Rem
+Function SetRenderState( capability:Int, flag:Int )
+	SetRenderState_( capability, flag )
+End Function
+
+Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=TFormedX">Online doc</a>
 End Rem
 Function TFormedX:Float()

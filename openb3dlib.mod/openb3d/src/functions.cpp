@@ -23,16 +23,35 @@ void BackBufferToTex(Texture* tex,int frame){
 	tex->BackBufferToTex(frame);
 }
 
-void DepthBufferToTex(Texture* tex,int frame){
-	tex->DepthBufferToTex(frame);
-}
-
 void CameraToTex(Texture* tex, Camera* cam, int frame){
 	tex->CameraToTex(cam,frame);
 }
 
 void TexToBuffer(Texture* tex,unsigned char* buffer, int frame){
 	tex->TexToBuffer(buffer,frame);
+}
+
+// wrapper only
+
+void DepthBufferToTex(Texture* tex,int frame){
+	tex->DepthBufferToTex(frame);
+}
+
+void GraphicsResize(int width,int height){
+	Global::width=width;
+	Global::height=height;
+}
+
+void SetRenderState(int capability,int flag){
+	
+	switch(capability){
+	case GL_COLOR_ARRAY: // for vertex colors
+		Global::fx2=flag;
+		break;
+	case GL_NORMAL_ARRAY: // for normal vectors
+		Global::fx1=flag;
+		break;
+	}
 }
 
 
@@ -865,13 +884,6 @@ bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=Graphics3D">O
 */
 void Graphics3D(int width,int height,int depth,int mode,int rate){
 	Global::Graphics(); //(width,height,depth,mode,rate);
-	Global::width=width;
-	Global::height=height;
-}
-
-/*
-*/
-void GraphicsResize(int width,int height){
 	Global::width=width;
 	Global::height=height;
 }

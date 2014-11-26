@@ -6,9 +6,13 @@ extern "C" {
 
 void BufferToTex(Texture* tex,unsigned char* buffer, int frame);
 void BackBufferToTex(Texture* tex,int frame);
-void DepthBufferToTex(Texture* tex,int frame);
+void CameraToTex(Texture* tex, Camera* cam, int frame);
 void TexToBuffer(Texture* tex,unsigned char* buffer, int frame);
 
+// wrapper only
+void DepthBufferToTex(Texture* tex,int frame);
+void GraphicsResize(int width,int height);
+void SetRenderState(int capability,int flag);
 
 /*
 bbdoc: Minib3d Only
@@ -589,10 +593,6 @@ Brush* GetSurfaceBrush(Surface* surf);
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=Graphics3D">Online Help</a>
 */
 void Graphics3D(int width,int height,int depth,int mode,int rate);
-
-/*
-*/
-void GraphicsResize(int width,int height);
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=HandleSprite">Online Help</a>
