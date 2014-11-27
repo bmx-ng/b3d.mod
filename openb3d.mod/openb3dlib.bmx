@@ -449,8 +449,8 @@ Type TGlobal
 		glEnable(GL_NORMALIZE)
 		
 		glEnableClientState(GL_VERTEX_ARRAY)
-		'glEnableClientState(GL_COLOR_ARRAY)
-		'glEnableClientState(GL_NORMAL_ARRAY)
+		glEnableClientState(GL_COLOR_ARRAY)
+		glEnableClientState(GL_NORMAL_ARRAY)
 		
 		SetRenderState(GL_COLOR_ARRAY,1) ' when drawing with Max2d
 		SetRenderState(GL_NORMAL_ARRAY,1) ' when using flat shading
@@ -467,7 +467,7 @@ Type TBlob Extends TEntity
 	Method NewBlob:TBlob( inst:Byte Ptr )
 	
 		Local blob:TBlob=New TBlob
-		entity_map.Insert( String(Long(inst)), blob )
+		entity_map.Insert( inst, blob )
 		blob.instance=inst
 		Return blob
 		
@@ -477,14 +477,14 @@ End Type
 
 Type TBrush
 
-	Global brush_map:TMap=New TMap
+	Global brush_map:TPtrMap=New TPtrMap
 
 	Field instance:Byte Ptr
 	
 	Method NewBrush:TBrush( inst:Byte Ptr )
 	
 		Local brush:TBrush=New TBrush
-		brush_map.Insert( String(Long(inst)), brush )
+		brush_map.Insert( inst, brush )
 		brush.instance=inst
 		Return brush
 		
@@ -492,13 +492,13 @@ Type TBrush
 	
 	Method DeleteBrush( inst:Byte Ptr )
 	
-		brush_map.Remove( String(Long(inst)) )
+		brush_map.Remove( inst )
 	
 	End Method
 	
 	Method BrushValue:TBrush( inst:Byte Ptr )
 	
-		Return TBrush( brush_map.ValueForKey( String(Long(inst)) ) )
+		Return TBrush( brush_map.ValueForKey( inst ) )
 	
 	End Method
 	
@@ -519,7 +519,7 @@ Type TCamera Extends TEntity
 	Method NewCamera:TCamera( inst:Byte Ptr )
 	
 		Local cam:TCamera=New TCamera
-		entity_map.Insert( String(Long(inst)), cam )
+		entity_map.Insert( inst, cam )
 		cam.instance=inst
 		Return cam
 		
@@ -529,14 +529,14 @@ End Type
 
 Type TEntity
 
-	Global entity_map:TMap=New TMap
+	Global entity_map:TPtrMap=New TPtrMap
 
 	Field instance:Byte Ptr
 	
 	Method NewEntity:TEntity(inst:Byte Ptr)
 
 		Local ent:TEntity=New TEntity
-		entity_map.Insert( String(Long(inst)), ent )
+		entity_map.Insert( inst, ent )
 		ent.instance=inst
 		Return ent
 		
@@ -544,13 +544,13 @@ Type TEntity
 	
 	Method DeleteEntity(inst:Byte Ptr)
 	
-		entity_map.Remove( String(Long(inst)) )
+		entity_map.Remove( inst )
 	
 	End Method
 
 	Method EntityValue:TEntity( inst:Byte Ptr )
 	
-		Return TEntity( entity_map.ValueForKey( String(Long(inst)) ) )
+		Return TEntity( entity_map.ValueForKey( inst ) )
 	
 	End Method
 
@@ -609,7 +609,7 @@ Type TFluid Extends TMesh
 	Method NewFluid:TFluid( inst:Byte Ptr )
 	
 		Local fluid:TFluid=New TFluid
-		entity_map.Insert( String(Long(inst)), fluid )
+		entity_map.Insert( inst, fluid )
 		fluid.instance=inst
 		Return fluid
 		
@@ -622,7 +622,7 @@ Type TGeosphere Extends TTerrain
 	Method NewGeosphere:TGeosphere(inst:Byte Ptr)
 	
 		Local geo:TGeosphere=New TGeosphere
-		entity_map.Insert( String(Long(inst)), geo )
+		entity_map.Insert( inst, geo )
 		geo.instance=inst
 		Return geo
 		
@@ -798,7 +798,7 @@ Type TLight Extends TEntity
 	Method NewLight:TLight( inst:Byte Ptr )
 	
 		Local light:TLight=New TLight
-		entity_map.Insert( String(Long(inst)), light )
+		entity_map.Insert( inst, light )
 		light.instance=inst
 		Return light
 		
@@ -811,7 +811,7 @@ Type TMaterial Extends TTexture
 	Method NewMaterial:TMaterial( inst:Byte Ptr )
 	
 		Local mat:TMaterial=New TMaterial
-		tex_map.Insert( String(Long(inst)), mat )
+		tex_map.Insert( inst, mat )
 		mat.instance=inst
 		Return mat
 		
@@ -824,7 +824,7 @@ Type TMesh Extends TEntity
 	Method NewMesh:TMesh( inst:Byte Ptr )
 	
 		Local mesh:TMesh=New TMesh
-		entity_map.Insert( String(Long(inst)), mesh )
+		entity_map.Insert( inst, mesh )
 		mesh.instance=inst
 		Return mesh
 		
@@ -837,7 +837,7 @@ Type TOcTree Extends TTerrain
 	Method NewOcTree:TOcTree( inst:Byte Ptr )
 	
 		Local octree:TOcTree=New TOcTree
-		entity_map.Insert( String(Long(inst)), octree )
+		entity_map.Insert( inst, octree )
 		octree.instance=inst
 		Return octree
 		
@@ -850,7 +850,7 @@ Type TPivot Extends TEntity
 	Method NewPivot:TPivot( inst:Byte Ptr )
 	
 		Local piv:TPivot=New TPivot
-		entity_map.Insert( String(Long(inst)), piv )
+		entity_map.Insert( inst, piv )
 		piv.instance=inst
 		Return piv
 		
@@ -874,14 +874,14 @@ End Type
 
 Type TShadowObject
 
-	Global shad_map:TMap=New TMap
+	Global shad_map:TPtrMap=New TPtrMap
 
 	Field instance:Byte Ptr
 	
 	Method NewShadowObject:TShadowObject( inst:Byte Ptr )
 	
 		Local shad:TShadowObject=New TShadowObject
-		shad_map.Insert( String(Long(inst)), shad )
+		shad_map.Insert( inst, shad )
 		shad.instance=inst
 		Return shad
 		
@@ -889,7 +889,7 @@ Type TShadowObject
 	
 	Method DeleteShadowObject( inst:Byte Ptr )
 	
-		shad_map.Remove( String(Long(inst)) )
+		shad_map.Remove( inst )
 	
 	End Method
 	
@@ -900,7 +900,7 @@ Type TSprite Extends TMesh
 	Method NewSprite:TSprite( inst:Byte Ptr )
 	
 		Local sprite:TSprite=New TSprite
-		entity_map.Insert( String(Long(inst)), sprite )
+		entity_map.Insert( inst, sprite )
 		sprite.instance=inst
 		Return sprite
 		
@@ -927,14 +927,14 @@ bbdoc: Surface
 End Rem
 Type TSurface
 
-	Global surf_map:TMap=New TMap
+	Global surf_map:TPtrMap=New TPtrMap
 	
 	Field instance:Byte Ptr
 	
 	Method NewSurface:TSurface( inst:Byte Ptr )
 	
 		Local surf:TSurface=New TSurface
-		surf_map.Insert( String(Long(inst)), surf )
+		surf_map.Insert( inst, surf )
 		surf.instance=inst
 		Return surf
 		
@@ -942,7 +942,7 @@ Type TSurface
 	
 	Method SurfaceValue:TSurface( inst:Byte Ptr )
 	
-		Return TSurface( surf_map.ValueForKey( String(Long(inst)) ) )
+		Return TSurface( surf_map.ValueForKey( inst ) )
 	
 	End Method
 	
@@ -956,7 +956,7 @@ Type TTerrain Extends TEntity
 	Method NewTerrain:TTerrain( inst:Byte Ptr )
 	
 		Local terr:TTerrain=New TTerrain
-		entity_map.Insert( String(Long(inst)), terr )
+		entity_map.Insert( inst, terr )
 		terr.instance=inst
 		Return terr
 		
@@ -969,14 +969,14 @@ bbdoc: Texture
 End Rem
 Type TTexture
 
-	Global tex_map:TMap=New TMap
+	Global tex_map:TPtrMap=New TPtrMap
 
 	Field instance:Byte Ptr
 	
 	Method NewTexture:TTexture( inst:Byte Ptr )
 	
 		Local tex:TTexture=New TTexture
-		tex_map.Insert( String(Long(inst)), tex )
+		tex_map.Insert( inst, tex )
 		tex.instance=inst
 		Return tex
 		
@@ -984,13 +984,13 @@ Type TTexture
 	
 	Method DeleteTexture( inst:Byte Ptr )
 	
-		tex_map.Remove( String(Long(inst)) )
+		tex_map.Remove( inst )
 	
 	End Method
 	
 	Method TextureValue:TTexture( inst:Byte Ptr )
 	
-		Return TTexture( tex_map.ValueForKey( String(Long(inst)) ) )
+		Return TTexture( tex_map.ValueForKey( inst ) )
 	
 	End Method
 	
@@ -1001,7 +1001,7 @@ Type TVoxelSprite Extends TMesh
 	Method NewVoxelSprite:TVoxelSprite( inst:Byte Ptr )
 	
 		Local voxelspr:TVoxelSprite=New TVoxelSprite
-		entity_map.Insert( String(Long(inst)), voxelspr )
+		entity_map.Insert( inst, voxelspr )
 		voxelspr.instance=inst
 		Return voxelspr
 		
