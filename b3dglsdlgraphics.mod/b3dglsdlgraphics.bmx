@@ -62,7 +62,7 @@ Function Graphics3D( width%, height%, depth%=0, Mode%=0, rate%=60, flags%=-1, us
 		Graphics( width,height,depth,rate,flags )		
 	EndIf
 	
-	TGlobal.GraphicsInit()
+	_b3dDriver.GraphicsInit()
 	
 	Graphics3D_( width,height,depth,Mode,rate )
 	

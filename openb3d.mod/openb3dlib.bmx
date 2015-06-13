@@ -308,11 +308,8 @@ Extern
 
 End Extern
 
-Private
 
-Global globals:TGlobal=New TGlobal
-
-Public
+Global _b3dDriver:TB3dDriver = New TB3dDriver
 
 
 ' Constants
@@ -361,7 +358,7 @@ Function EndMax2D()
 	glMatrixMode(GL_COLOR)
 	glPushMatrix()
 	
-	TGlobal.EnableStates()
+	_b3dDriver.EnableStates()
 	glDisable(GL_TEXTURE_2D)
 	
 	glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL,GL_SEPARATE_SPECULAR_COLOR)
@@ -379,32 +376,32 @@ End Function
 ' Wrapper object types
 ' --------------------
 
-Type TGlobal
+Type TB3dDriver
 
-	Global blob:TBlob=New TBlob
-	Global brush:TBrush=New TBrush
-	Global cam:TCamera=New TCamera
-	Global ent:TEntity=New TEntity
-	Global fluid:TFluid=New TFluid
-	Global geo:TGeosphere=New TGeosphere
-	Global light:TLight=New TLight
-	Global mat:TMaterial=New TMaterial
-	Global material:TShader=New TShader
-	Global mesh:TMesh=New TMesh
-	Global octree:TOcTree=New TOcTree
-	Global piv:TPivot=New TPivot
-	Global shad:TShadowObject=New TShadowObject
-	Global sprite:TSprite=New TSprite
-	Global stencil:TStencil=New TStencil
-	Global surf:TSurface=New TSurface
-	Global terr:TTerrain=New TTerrain
-	Global tex:TTexture=New TTexture
-	Global voxelspr:TVoxelSprite=New TVoxelSprite
+	Field blob:TBlob=New TBlob
+	Field brush:TBrush=New TBrush
+	Field cam:TCamera=New TCamera
+	Field ent:TEntity=New TEntity
+	Field fluid:TFluid=New TFluid
+	Field geo:TGeosphere=New TGeosphere
+	Field light:TLight=New TLight
+	Field mat:TMaterial=New TMaterial
+	Field material:TShader=New TShader
+	Field mesh:TMesh=New TMesh
+	Field octree:TOcTree=New TOcTree
+	Field piv:TPivot=New TPivot
+	Field shad:TShadowObject=New TShadowObject
+	Field sprite:TSprite=New TSprite
+	Field stencil:TStencil=New TStencil
+	Field surf:TSurface=New TSurface
+	Field terr:TTerrain=New TTerrain
+	Field tex:TTexture=New TTexture
+	Field voxelspr:TVoxelSprite=New TVoxelSprite
 
-	Function GraphicsInit()
+	Method GraphicsInit()
 	
 		TextureFilter("",9)
-?Not linuxarm
+?Not opengles
 		glewInit() ' required for ARB funcs
 ?
 		' get hardware info and set vbo_enabled accordingly (use THardwareInfo.VBOSupport)
@@ -437,9 +434,9 @@ Type TGlobal
 		
 		glAlphaFunc(GL_GEQUAL,0.5)
 		
-	End Function
+	End Method
 	
-	Function EnableStates()
+	Method EnableStates()
 	
 		glEnable(GL_LIGHTING)
    		glEnable(GL_DEPTH_TEST)
@@ -456,7 +453,7 @@ Type TGlobal
 		SetRenderState(GL_COLOR_ARRAY,1) ' when drawing with Max2d
 		SetRenderState(GL_NORMAL_ARRAY,1) ' when using flat shading
 		
-	End Function
+	End Method
 
 End Type
 
@@ -1029,12 +1026,12 @@ Type TOpenB3DMeshLoader Extends TMeshLoader
 
 	Method LoadMesh:Object(obj:Object, parent:Object = Null)
 		Local instance:Byte Ptr = LoadMesh_(String(obj), TEntity.EntityExists( TEntity(parent) ) )
-		Return globals.mesh.NewMesh( instance )
+		Return _b3dDriver.mesh.NewMesh( instance )
 	End Method
 
 	Method LoadAnimMesh:Object(obj:Object, parent:Object = Null)
 		Local instance:Byte Ptr = LoadAnimMesh_(String(obj), TEntity.EntityExists(TEntity(parent) ) )
-		Return globals.mesh.NewMesh( instance )
+		Return _b3dDriver.mesh.NewMesh( instance )
 	End Method
 	
 End Type
