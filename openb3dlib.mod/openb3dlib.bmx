@@ -34,8 +34,22 @@ ModuleInfo "Copyright: Openb3d - Angelo Rosina"
 
 ModuleInfo "History: 1.00 Initial Release"
 
-
+?win32
 Import Pub.Glew
 Import Pub.OpenGL ' order is important, glew before OpenGL
+?macos
+Import Pub.Glew
+Import Pub.OpenGL ' order is important, glew before OpenGL
+?linuxx86
+Import Pub.Glew
+Import Pub.OpenGL ' order is important, glew before OpenGL
+?linuxx64
+Import Pub.Glew
+Import Pub.OpenGL ' order is important, glew before OpenGL
+?raspberrypi
+Import Pub.OpenGLES
+?android
+Import Pub.OpenGLES
+?
 
 Import "source.bmx"

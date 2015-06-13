@@ -1576,9 +1576,10 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=LoadAnimMesh">Online doc</a>
 End Rem
 Function LoadAnimMesh:TMesh( file:String, parent:TEntity=Null )
-	Local instance:Byte Ptr=LoadAnimMesh_( file, TEntity.EntityExists( parent ) )
-	Local mesh:TMesh=globals.mesh.NewMesh( instance )
-	Return mesh
+	Local meshLoader:TMeshLoader = GetMeshLoader(ExtractExt(file))
+	If meshloader Then
+		Return TMesh(meshLoader.LoadAnimMesh(file, parent))
+	End If
 End Function
 
 Rem
@@ -1603,9 +1604,10 @@ Rem
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=LoadMesh">Online doc</a>
 End Rem
 Function LoadMesh:TMesh( file:String, parent:TEntity=Null )
-	Local instance:Byte Ptr=LoadMesh_( file, TEntity.EntityExists( parent ) )
-	Local mesh:TMesh=globals.mesh.NewMesh( instance )
-	Return mesh
+	Local meshLoader:TMeshLoader = GetMeshLoader(ExtractExt(file))
+	If meshloader Then
+		Return TMesh(meshLoader.LoadMesh(file, parent))
+	End If
 End Function
 
 Rem

@@ -24,6 +24,7 @@
 
 Strict
 
+Import b3d.b3d
 Import brl.map
 Import brl.Graphics
 Import b3d.OpenB3dLib
@@ -1014,3 +1015,28 @@ End Type
 ' -----------------
 
 Include "functions.bmx"
+
+
+
+Type TOpenB3DMeshLoader Extends TMeshLoader
+	
+	Method CanLoadMesh:Int(extension:String)
+		Select extension.ToLower()
+			Case "b3d"
+				Return True
+		End Select
+	End Method
+
+	Method LoadMesh:Object(obj:Object, parent:Object = Null)
+		Local instance:Byte Ptr = LoadMesh_(String(obj), TEntity.EntityExists( TEntity(parent) ) )
+		Return globals.mesh.NewMesh( instance )
+	End Method
+
+	Method LoadAnimMesh:Object(obj:Object, parent:Object = Null)
+		Local instance:Byte Ptr = LoadAnimMesh_(String(obj), TEntity.EntityExists(TEntity(parent) ) )
+		Return globals.mesh.NewMesh( instance )
+	End Method
+	
+End Type
+
+New TOpenB3DMeshLoader
