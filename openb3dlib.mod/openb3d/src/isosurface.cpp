@@ -1,15 +1,23 @@
-#include "glew.h"
-/*
-#ifdef linux
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
-#include <GL/glext.h>
+
+#ifdef OPENB3D_GLEW
+	#include "glew.h"
+#else
+	#ifdef linux
+	#define GL_GLEXT_PROTOTYPES
+	#include <GL/gl.h>
+	#include <GL/glext.h>
+	#endif
+
+	#ifdef WIN32
+	#include <gl\GLee.h>
+	#endif
+
+	#ifdef __APPLE__
+	#include "GLee.h"
+	#endif
 #endif
-#ifdef WIN32
-#include <gl\GLee.h>
-#endif
-*/
-#include "metaball.h"
+
+#include "isosurface.h"
 #include "global.h"
 #include "camera.h"
 #include "pick.h"
@@ -18,10 +26,12 @@ static float Xcf, Ycf, Zcf;
 
 static list<Blob*> render_blobs;
 
+static FieldArray* data_array;
+
 static int level;
 
 
-const int edgeTable[256]={
+/*extern*/ const int edgeTable[256]={
 0x0  , 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,
 0x80c, 0x905, 0xa0f, 0xb06, 0xc0a, 0xd03, 0xe09, 0xf00,
 0x190, 0x99 , 0x393, 0x29a, 0x596, 0x49f, 0x795, 0x69c,
@@ -56,7 +66,7 @@ const int edgeTable[256]={
 0x70c, 0x605, 0x50f, 0x406, 0x30a, 0x203, 0x109, 0x0   };
 
 //gives which vertices to join to form triangles for the surface
-const int triTable[256][16] =
+extern const int triTable[256][16] =
 {{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
 {0, 8, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
 {0, 1, 9, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
@@ -335,6 +345,47 @@ float MetaballsField (float x, float y, float z){
 	return field;
 }
 
+float ArraysField (float x, float y, float z){
+
+	data_array->mat.TransformVec(x, y, z, 1);
+
+	int X,Y,Z;
+	X=(int)x;
+	Y=(int)y;
+	Z=(int)z;
+
+	int w=data_array->width;
+	int h=data_array->height;
+	int d=data_array->depth;
+	int Offset=X + Y*w + Z*w*h;
+
+	if (X<0 || X>=w) return 0;
+	if (Y<0 || Y>=h) return 0;
+	if (Z<0 || Z>=d) return 0;
+
+	float a1,a2,a3,a4,a5,a6,a7,a8;
+	a1=data_array->data[Offset];
+	a2=data_array->data[Offset + 1];
+	a3=data_array->data[Offset + w];
+	a4=data_array->data[Offset + 1 + w];
+	a5=data_array->data[Offset + w*h];
+	a6=data_array->data[Offset + 1 + w*h];
+	a7=data_array->data[Offset + w + w*h];
+	a8=data_array->data[Offset + 1 +w + w*h];
+
+
+	float i1,i2,i3,i4,i5,i6;
+
+	i1=a1+(a2-a1)*(x-X);
+	i2=a3+(a4-a3)*(x-X);
+	i3=a5+(a6-a5)*(x-X);
+	i4=a7+(a8-a7)*(x-X);
+	i5=i1+(i2-i1)*(y-Y);
+	i6=i3+(i4-i3)*(y-Y);
+
+	return i5+(i6-i5)*(z-Z);
+
+}
 
 Fluid* Fluid::CreateFluid(){
 	Fluid* fluid=new Fluid();
@@ -361,6 +412,7 @@ Fluid* Fluid::CreateFluid(){
 	fluid->ScalarField=&MetaballsField;
 
 	fluid->threshold=.5;
+	fluid->render_mode=0;
 
 	fluid->ResetBuffers();
 
@@ -402,6 +454,19 @@ void Fluid::FreeEntity(){
 
 }
 
+void Fluid::FluidFunction(float (*FieldFunction)(float, float, float)){
+	ScalarField=FieldFunction;
+}
+
+void Fluid::FluidArray(float* Array, int w, int h, int d){
+	ScalarField=&ArraysField;
+	render_mode=2;
+	fieldarray=new FieldArray;
+	fieldarray->data=Array;
+	fieldarray->width=w;
+	fieldarray->height=h;
+	fieldarray->depth=d;
+}
 
 void Fluid::MarchingCube(float x, float y, float z, float x1, float y1, float z1, float F[8]){
 
@@ -1012,7 +1077,7 @@ void Fluid::Render(){
 	surf->vert_col.clear();
 	surf->no_tris=0;
 
-	if (fastmode){
+	if (render_mode==1){
 		// Only metaballs that are in the view frustum are used to compute the scalar field
 		render_blobs.clear();
 		list<Blob*>::iterator it;
@@ -1023,8 +1088,13 @@ void Fluid::Render(){
 				render_blobs.push_back(blob);
 			}
 		}
-	}else{
+	}else if (render_mode==0){
 		render_blobs=metaball_list;
+	}else
+	{
+		//Array
+		data_array=fieldarray;
+		MQ_GetInvMatrix(fieldarray->mat, true);
 	}
 
 	level=0;
@@ -1132,7 +1202,7 @@ void Fluid::Render(){
 	int tex_count=0;
 
 	if(surf->ShaderMat!=NULL){
-		surf->ShaderMat->TurnOn(surf, mat);
+		surf->ShaderMat->TurnOn(mat, surf);
 	}else{
 
 		tex_count=brush.no_texs;
@@ -1493,4 +1563,12 @@ Blob* Blob::CopyEntity(Entity* parent_ent){
 	return blob;
 	
 }
+
+void FieldArray::FreeEntity(){
+	delete this;
+	
+	return;
+}
+
+FieldArray* FieldArray::CopyEntity(Entity* parent_ent){ return 0;}
 

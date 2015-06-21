@@ -1,18 +1,21 @@
-#include "glew.h"
 
-/*
-#ifdef linux
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
-#include <GL/glext.h>
+#ifdef OPENB3D_GLEW
+	#include "glew.h"
+#else
+	#ifdef linux
+	#define GL_GLEXT_PROTOTYPES
+	#include <GL/gl.h>
+	#include <GL/glext.h>
+	#endif
+
+	#ifdef WIN32
+	#include <gl\GLee.h>
+	#endif
+
+	#ifdef __APPLE__
+	#include "GLee.h"
+	#endif
 #endif
-#ifdef WIN32
-#include "GLee.h"
-#endif
-#ifdef __APPLE__
-#include "GLee.h"
-#endif
-*/
 
 #include "stencil.h"
 #include "mesh.h"

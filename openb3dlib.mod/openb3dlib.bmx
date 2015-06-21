@@ -34,6 +34,9 @@ ModuleInfo "Copyright: Openb3d - Angelo Rosina"
 
 ModuleInfo "History: 1.00 Initial Release"
 
+ModuleInfo "CC_OPTS: -DOPENB3D_GLEW"
+ModuleInfo "CC_OPTS: -DOPENB3D_BMX"
+
 ?win32
 Import Pub.Glew
 Import Pub.OpenGL ' order is important, glew before OpenGL

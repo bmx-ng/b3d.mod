@@ -7,21 +7,24 @@
  *
  */
 
-#include "glew.h"
-/*
-#ifdef linux
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
-#include <GL/glext.h>
+#ifdef OPENB3D_GLEW
+	#include "glew.h"
+#else
+	#ifdef linux
+	#define GL_GLEXT_PROTOTYPES
+	#include <GL/gl.h>
+	#include <GL/glext.h>
+	#endif
+
+	#ifdef WIN32
+	#include <gl\GLee.h>
+	#endif
+
+	#ifdef __APPLE__
+	#include "GLee.h"
+	#endif
 #endif
 
-#ifdef WIN32
-#include "GLee.h"
-#endif
-#ifdef __APPLE__
-#include "GLee.h"
-#endif
-*/
 #include "mesh.h"
 
 #include "global.h"
@@ -223,7 +226,7 @@ Mesh* Mesh::CopyEntity(Entity* parent_ent){
 
 	mesh->reset_bounds=reset_bounds;
 
-	mesh->no_bones=no_bones;
+	//mesh->no_bones=no_bones;
 	CopyBonesList(mesh,mesh->bones);
 
 	return mesh;
@@ -308,6 +311,68 @@ Surface* Mesh::CreateSurface(Brush* bru){
 	return surf;
 
 }
+
+Bone* Mesh::CreateBone(Entity* parent_ent){
+	// new bone
+	Bone* bone=new Bone;
+
+	bones.push_back(bone);
+	bone->class_name="Bone";
+	bone->keys=new AnimationKeys();
+	
+	// add parent, add to list
+	bone->AddParent(*parent_ent);
+	entity_list.push_back(bone);
+	
+	// update matrix
+	if(bone->parent){
+		bone->mat.Overwrite(bone->parent->mat);
+	}else{
+		bone->mat.LoadIdentity();
+	}
+
+	if (anim==false){
+		anim=1;
+		anim_render=true;
+
+		anim_seqs_first[0]=0;
+		anim_seqs_last[0]=0;
+
+		// create anim surfs, copy vertex coords array, add to anim_surf_list
+
+		list<Surface*>::iterator it;
+
+
+		for(it=surf_list.begin();it!=surf_list.end();it++){
+			Surface& surf=**it;
+
+			Surface* anim_surf=new Surface();
+
+			anim_surf_list.push_back(anim_surf);
+			anim_surf->no_verts=surf.no_verts;
+
+			//First frame
+			anim_surf->vert_coords=surf.vert_coords;
+
+			anim_surf->vert_bone1_no.resize(surf.no_verts+1);
+			anim_surf->vert_bone2_no.resize(surf.no_verts+1);
+			anim_surf->vert_bone3_no.resize(surf.no_verts+1);
+			anim_surf->vert_bone4_no.resize(surf.no_verts+1);
+			anim_surf->vert_weight1.resize(surf.no_verts+1);
+			anim_surf->vert_weight2.resize(surf.no_verts+1);
+			anim_surf->vert_weight3.resize(surf.no_verts+1);
+			anim_surf->vert_weight4.resize(surf.no_verts+1);
+
+			// transfer vmin/vmax values for using with TrimVerts func after
+			anim_surf->vmin=surf.vmin;
+			anim_surf->vmax=surf.vmax;
+		}
+	}
+
+
+	return bone;
+}
+
 
 Mesh* Mesh::LoadMesh(string filename,Entity* parent_ent){
 
@@ -1042,7 +1107,7 @@ Mesh* Mesh::RepeatMesh(Entity* parent_ent){
 
 	mesh->reset_bounds=reset_bounds;
 
-	mesh->no_bones=0;
+	//mesh->no_bones=0;
 
 	//CopyBonesList(mesh,mesh->bones);
 
@@ -1635,6 +1700,38 @@ Surface* Mesh::GetSurface(int surf_no_get){
 
 }
 
+void Mesh::SkinMesh(int surf_no_get, int vid, int bone1, float weight1, int bone2, float weight2, int bone3, float weight3, int bone4, float weight4){
+
+	int surf_no=0;
+
+	list<Surface*>::iterator it;
+
+	Surface* anim_surf=0;
+
+	for(it=anim_surf_list.begin();it!=anim_surf_list.end();it++){
+
+		anim_surf=*it;
+
+		surf_no=surf_no+1;
+
+		if(surf_no_get==surf_no) break;
+
+	}
+
+	anim_surf->vert_bone1_no[vid]=bone1;
+	anim_surf->vert_weight1[vid]=weight1;
+
+	anim_surf->vert_bone2_no[vid]=bone2;
+	anim_surf->vert_weight2[vid]=weight2;
+
+	anim_surf->vert_bone3_no[vid]=bone3;
+	anim_surf->vert_weight3[vid]=weight3;
+
+	anim_surf->vert_bone4_no[vid]=bone4;
+	anim_surf->vert_weight4[vid]=weight4;
+
+
+}
 /*
 	Method FindSurface:TSurface(brush:TBrush)
 
@@ -2340,7 +2437,7 @@ void Mesh::Render(){
 		int tex_count=0;
 
 		if(surf.ShaderMat!=NULL){
-			surf.ShaderMat->TurnOn(&surf, mat);
+			surf.ShaderMat->TurnOn(mat, &surf);
 		}
 		else
 		{

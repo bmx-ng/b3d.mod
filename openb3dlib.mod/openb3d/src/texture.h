@@ -75,8 +75,10 @@ public:
 	Texture* TexInList();
 	void FilterFlags();
 	static string Strip(string filename);
+#ifdef OPENB3D_BMX
 	static string StripFile(string filename);
 	static string NewFilePath(string filepath, string filename);
+#endif
 };
 
 #endif

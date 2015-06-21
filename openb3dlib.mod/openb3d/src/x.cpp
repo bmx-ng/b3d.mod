@@ -419,7 +419,7 @@ Mesh* LoadX(string URL, Entity* parent_ent){
 										float x = vertx * tformmat.grid[0][0] + verty * tformmat.grid[0][1] + vertz * tformmat.grid[0][2] + tformmat.grid[0][3];
 										float y = vertx * tformmat.grid[1][0] + verty * tformmat.grid[1][1] + vertz * tformmat.grid[1][2] + tformmat.grid[1][3];
 										float z = vertx * tformmat.grid[2][0] + verty * tformmat.grid[2][1] + vertz * tformmat.grid[2][2] + tformmat.grid[2][3];
-										float w = tformmat.grid[3][0] + tformmat.grid[3][1] + tformmat.grid[3][2] + tformmat.grid[3][3];
+										//float w = tformmat.grid[3][0] + tformmat.grid[3][1] + tformmat.grid[3][2] + tformmat.grid[3][3];
 											
 										surf->AddVertex(x, y, z);
 									}

@@ -7,23 +7,26 @@
  *
  */
 
-#include "glew.h"
-/*
-#ifdef linux
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
-#include <GL/glext.h>
-#include <GL/glu.h>
+#ifdef OPENB3D_GLEW
+	#include "glew.h"
+#else
+	#ifdef linux
+	#define GL_GLEXT_PROTOTYPES
+	#include <GL/gl.h>
+	#include <GL/glext.h>
+	#include <GL/glu.h>
+	#endif
+
+	#ifdef WIN32
+	#include <gl\GLee.h>
+	#include <GL\glu.h>
+	#endif
+
+	#ifdef __APPLE__
+	#include "GLee.h"
+	#include <OpenGL/glu.h>
+	#endif
 #endif
-#ifdef WIN32
-#include "GLee.h"
-#include <GL\glu.h>
-#endif
-#ifdef __APPLE__
-#include "GLee.h"
-#include <OpenGL/glu.h>
-#endif
-*/
 
 #include "texture.h"
 #include "stb_image.h"
@@ -44,7 +47,9 @@ void CopyPixels (unsigned char *src, unsigned int srcWidth, unsigned int srcHeig
 
 Texture* Texture::LoadTexture(string filename,int flags){
 	if (flags&128) {
-		//filename=Strip(filename); // get rid of path info
+		#ifndef OPENB3D_BMX
+		filename=Strip(filename); // get rid of path info
+		#endif
 		if (File::ResourceFilePath(filename)==""){
 			cout << "Error: Cannot Find Texture: " << filename << endl;
 			return NULL;
@@ -120,7 +125,9 @@ Texture* Texture::LoadTexture(string filename,int flags){
 
 Texture* Texture::LoadAnimTexture(string filename,int flags, int frame_width,int frame_height,int first_frame,int frame_count){
 
-	//filename=Strip(filename); // get rid of path info
+	#ifndef OPENB3D_BMX
+	filename=Strip(filename); // get rid of path info
+	#endif
 
 	if(File::ResourceFilePath(filename)==""){
 		cout << "Error: Cannot Find Texture: " << filename << endl;
@@ -301,6 +308,7 @@ void Texture::FilterFlags(){
 	}
 }
 
+#ifdef OPENB3D_BMX
 // used in LoadTexture, strips path info from filename
 string Texture::Strip(string filename){
 	string stripped_filename=filename;
@@ -317,6 +325,7 @@ string Texture::Strip(string filename){
 	}
 
 	return stripped_filename;
+
 }
 
 // strips file info from filepath
@@ -367,10 +376,11 @@ string Texture::NewFilePath(string filepath, string filename){
 		ifs.close();
 		return fpath+"\\"+fname; // windows
 	}
-	
+
 	cout << "Error: Can't Find Resource File '"+filename+"'" << endl;
 	return filename;
 }
+#endif
 
 void Texture::BufferToTex(unsigned char* buffer, int frame){
 	if(flags&128){

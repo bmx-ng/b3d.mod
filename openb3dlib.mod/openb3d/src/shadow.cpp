@@ -1,18 +1,21 @@
 
-#include "glew.h"
-/*
-#ifdef linux
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
-#include <GL/glext.h>
+#ifdef OPENB3D_GLEW
+	#include "glew.h"
+#else
+	#ifdef linux
+	#define GL_GLEXT_PROTOTYPES
+	#include <GL/gl.h>
+	#include <GL/glext.h>
+	#endif
+
+	#ifdef WIN32
+	#include <gl\GLee.h>
+	#endif
+
+	#ifdef __APPLE__
+	#include "GLee.h"
+	#endif
 #endif
-#ifdef WIN32
-#include "GLee.h"
-#endif
-#ifdef __APPLE__
-#include "GLee.h"
-#endif
-*/
 
 #include "shadow.h"
 #include "light.h"
@@ -326,7 +329,8 @@ void ShadowObject::UpdateCaster(){
 	char check2=0;
 	char check3=0;
 
-	Matrix* mat1 = Parent->MQ_GetMatrix(true);
+	Matrix mat1;
+	Parent->MQ_GetMatrix(mat1, true);
 
 	vector<ShadowTriangle*>::iterator it;
 
@@ -353,17 +357,17 @@ void ShadowObject::UpdateCaster(){
 		etet->tf_v1x= etet->v1x;
 		etet->tf_v1y= etet->v1y;
 		etet->tf_v1z= etet->v1z;
-		mat1->TransformVec(etet->tf_v1x, etet->tf_v1y, etet->tf_v1z, 1);
+		mat1.TransformVec(etet->tf_v1x, etet->tf_v1y, etet->tf_v1z, 1);
 
 		etet->tf_v2x= etet->v2x;
 		etet->tf_v2y= etet->v2y;
 		etet->tf_v2z= etet->v2z;
-		mat1->TransformVec(etet->tf_v2x, etet->tf_v2y, etet->tf_v2z, 1);
+		mat1.TransformVec(etet->tf_v2x, etet->tf_v2y, etet->tf_v2z, 1);
 
 		etet->tf_v3x= etet->v3x;
 		etet->tf_v3y= etet->v3y;
 		etet->tf_v3z= etet->v3z;
-		mat1->TransformVec(etet->tf_v3x, etet->tf_v3y, etet->tf_v3z, 1);
+		mat1.TransformVec(etet->tf_v3x, etet->tf_v3y, etet->tf_v3z, 1);
 
 		e0x= etet->tf_v3x - etet->tf_v2x;
 		e0y= etet->tf_v3y - etet->tf_v2y;
@@ -376,7 +380,6 @@ void ShadowObject::UpdateCaster(){
 		normlight_z  = (etet->tf_v1z  - light_z ) * (e0x  * e1y  - e0y  * e1x );
 		etet->cull = (normlight_x  + normlight_y  + normlight_z  > 0);
 	}
-	delete mat1;
 
 //	for (int v = 0;v<=cnt_tris;v++){
 //		ShadowTriangle* etet = Tri[v];
