@@ -24,7 +24,7 @@ SuperStrict
 Rem
 bbdoc: Newton Dynamics
 End Rem
-Module b3d.NewtonDynamics
+Module Openb3dLibs.NewtonDynamics
 
 
 ModuleInfo "CC_OPTS: -D_NEWTON_STATIC_LIB"
