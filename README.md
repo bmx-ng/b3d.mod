@@ -1,4 +1,4 @@
 Openb3dlibs.mod
 ===============
 
-Blitzmax Openb3d library collection
+Blitzmax Openb3d other libraries
