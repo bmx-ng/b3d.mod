@@ -1,4 +1,4 @@
-' Copyright (c) 2015 Bruce A Henderson
+' Copyright (c) 2015-2016 Bruce A Henderson
 '
 ' This software is provided 'as-is', without any express or implied
 ' warranty. In no event will the authors be held liable for any damages
@@ -26,6 +26,13 @@ bbdoc: Newton Dynamics
 End Rem
 Module Openb3dLibs.NewtonDynamics
 
+ModuleInfo "Version: 1.00"
+ModuleInfo "License: zlib"
+ModuleInfo "Copyright: Newton Dynamics - 2003-2011 Julio Jerez and Alain Suero"
+ModuleInfo "Copyright: Wrapper - 2015-2016 Bruce A Henderson"
+
+ModuleInfo "History: 1.00"
+ModuleInfo "History: Initial Release."
 
 ModuleInfo "CC_OPTS: -D_NEWTON_STATIC_LIB"
 
@@ -154,6 +161,15 @@ Type TNWorld
 	End Method
 	
 	Rem
+	bbdoc: 
+	End Rem
+	Method CreateMesh:TNMesh()
+		Local mesh:TNMesh = New TNMesh
+		mesh.meshPtr = NewtonMeshCreate(worldPtr)
+		Return mesh
+	End Method
+	
+	Rem
 	bbdoc: Sets coulomb model of friction.
 	about: Allows the application to chose between and exact or an adaptive coulomb friction model.
  
@@ -248,6 +264,15 @@ Type TNWorld
 		End If
 	End Method
 	
+	Rem
+	bbdoc: new
+	End Rem
+	Method DestroyAllBodies()
+		If worldPtr
+			NewtonDestroyAllBodies(worldPtr)
+		EndIf
+	End Method
+	
 End Type
 
 Rem
@@ -281,13 +306,13 @@ Type TNRayCastDelegate
 
 
 	Function _prefilterCallback:Int(bodyPtr:Byte Ptr, collPtr:Byte Ptr, delPtr:Byte Ptr)
-		Local delegate:TNRayCastDelegate = bmx_newtondynamics_RayCastDelegateFromPtr(delPtr)
-		Return delegate.OnPreFilter(NewtonBodyGetUserData(bodyPtr), NewtonCollisionGetUserData(collPtr))
+		Local delegate:TNRayCastDelegate = TNRayCastDelegate(bmx_newtondynamics_RayCastDelegateFromPtr(delPtr))
+		Return delegate.OnPreFilter(TNBody(NewtonBodyGetUserData(bodyPtr)), TNCollision(NewtonCollisionGetUserData(collPtr)))
 	End Function
 	
 	Function _filterCallback:Float(bodyPtr:Byte Ptr, collPtr:Byte Ptr, hitContact:Float Ptr, hitNormal:Float Ptr, delPtr:Byte Ptr, intersectParam:Float)
-		Local delegate:TNRayCastDelegate = bmx_newtondynamics_RayCastDelegateFromPtr(delPtr)
-		Return delegate.OnFilter(NewtonBodyGetUserData(bodyPtr), NewtonCollisionGetUserData(collPtr), hitContact, hitNormal, intersectParam)
+		Local delegate:TNRayCastDelegate = TNRayCastDelegate(bmx_newtondynamics_RayCastDelegateFromPtr(delPtr))
+		Return delegate.OnFilter(TNBody(NewtonBodyGetUserData(bodyPtr)), TNCollision(NewtonCollisionGetUserData(collPtr)), hitContact, hitNormal, intersectParam)
 	End Function
 	
 End Type
@@ -472,9 +497,9 @@ Type TNBody
 	End Method
 	
 	Rem
-	bbdoc: Gets the linear viscous damping of the body.
+	bbdoc: Gets the angular viscous damping of the body.
 	End Rem
-	Method GetAngularDampling(aX:Float Var, aY:Float Var, aZ:Float Var)
+	Method GetAngularDamping(aX:Float Var, aY:Float Var, aZ:Float Var)
 		bmx_newtondynamics_NewtonBodyGetAngularDamping(bodyPtr, Varptr aX, Varptr aY, Varptr aZ)
 	End Method
 
@@ -486,11 +511,17 @@ Type TNBody
 	End Method
 	
 	Rem
-	bbdoc: Sets the linear viscous damping of the body.
+	bbdoc: Applies the angular viscous damping coefficient to the body.
 	about: The default value of *angularDamp* is clamped to a value between 0.0 and 1.0; the default value is 0.1,
 	There is a non zero implicit attenuation value of 0.0001 assumed by the integrator.
+	The dampening viscous friction torque is added to the external torque applied to the body every frame before going to the solver-integrator. 
+	This torque is proportional to the square of the magnitude of the angular velocity to the body in the opposite direction of the angular velocity of the body. 
+	An application can set *angularDamp* to zero when the to take control of the external forces and torque applied to the body, should the application
+	desire to have absolute control of the forces over that body. However, it is recommended that the *linearDamp* coefficient be set to a non-zero 
+	value for the majority of background bodies. This saves the application from needing to control these forces and also prevents the integrator from
+	adding very large velocities to a body.
 	End Rem
-	Method SetAngularDampling(aX:Float, aY:Float, aZ:Float)
+	Method SetAngularDamping(aX:Float, aY:Float, aZ:Float)
 		bmx_newtondynamics_NewtonBodySetAngularDamping(bodyPtr, aX, aY, aZ)
 	End Method
 
@@ -549,6 +580,13 @@ Type TNBody
 	End Method
 	
 	Rem
+	bbdoc: new
+	End Rem
+	Method SetMassMatrix(mass:Float, Ixx:Float, Iyy:Float, Izz:Float)
+		NewtonBodySetMassMatrix(bodyPtr, mass, Ixx, Iyy, Izz)
+	End Method
+	
+	Rem
 	bbdoc: 
 	End Rem
 	Method SetMassProperties(mass:Float, collision:TNCollision)
@@ -564,24 +602,72 @@ Type TNBody
 		NewtonBodySetLinearDamping(bodyPtr, linearDamp)
 	End Method
 	
+	Rem
+	bbdoc: Returns the body type.
+	about: Returns one of NEWTON_DYNAMIC_BODY, NEWTON_KINEMATIC_BODY or NEWTON_DEFORMABLE_BODY.
+	End Rem
+	Method GetType:Int()
+		Return NewtonBodyGetType(bodyPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns true if the body is collidable.
+	End Rem
+	Method GetCollidable:Int()
+		Return NewtonBodyGetCollidable(bodyPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the collidable state for the body.
+	End Rem
+	Method SetCollidable(collidableState:Int)
+		NewtonBodySetCollidable(bodyPtr, collidableState)
+	End Method
+	
+	Rem
+	bbdoc: Adds the net force applied to a rigid body.
+	about: This method is only effective when called from OnForceAndTorque/apply force and torque callback.
+	End Rem
+	Method AddForce(fx:Float, fy:Float, fz:Float)
+		bmx_newtondynamics_NewtonBodyAddForce(bodyPtr, fx, fy, fz)
+	End Method
+	
+	Rem
+	bbdoc: Adds the net torque applied to a rigid body.
+	about: This method is only effective when called from OnForceAndTorque/apply force and torque callback.
+	End Rem
+	Method AddTorque(tx:Float, ty:Float, tz:Float)
+		bmx_newtondynamics_NewtonBodyAddTorque(bodyPtr, tx, ty, tz)
+	End Method
+	
+	Rem
+	bbdoc: Calculates the next force that net to be applied to the body to archive the desired velocity in the current time step.
+	about: Can be useful when creating object for game play.
+	This treats the body as a point mass and is uses the solver to calculates the net force that need to be applied to the body
+	such that it reaches the desired velocity in the net time step.
+	End Rem
+	Method CalculateInverseDynamicsForce(timestep:Float, vx:Float, vy:Float, vz:Float, fx:Float Var, fy:Float Var, fz:Float Var)
+		bmx_newtondynamics_NewtonBodyCalculateInverseDynamicsForce(bodyPtr, timestep, vx, vy, vz, Varptr fx, Varptr fy, Varptr fz)
+	End Method
+	
 	' internal
 	Function _forceAndTorqueCallback(bodyPtr:Byte Ptr, timestamp:Float, threadIndex:Int)
-		Local body:TNBody = NewtonBodyGetUserData(bodyPtr)
+		Local body:TNBody = TNBody(NewtonBodyGetUserData(bodyPtr))
 		body._fatCallback(body, timestamp, threadIndex)
 	End Function
 
 	Function _defaultForceAndTorqueCallback(bodyPtr:Byte Ptr, timestamp:Float, threadIndex:Int)
-		Local body:TNBody = NewtonBodyGetUserData(bodyPtr)
+		Local body:TNBody = TNBody(NewtonBodyGetUserData(bodyPtr))
 		body.OnForceAndTorque(timestamp, threadIndex)
 	End Function
 
 	Function _transformCallback(bodyPtr:Byte Ptr, matrix:Float Ptr, threadIndex:Int)
-		Local body:TNBody = NewtonBodyGetUserData(bodyPtr)
+		Local body:TNBody = TNBody(NewtonBodyGetUserData(bodyPtr))
 		body._transCallback(body, matrix, threadIndex)
 	End Function
 
 	Function _defaultTransformCallback(bodyPtr:Byte Ptr, matrix:Float Ptr, threadIndex:Int)
-		Local body:TNBody = NewtonBodyGetUserData(bodyPtr)
+		Local body:TNBody = TNBody(NewtonBodyGetUserData(bodyPtr))
 		body.OnTransform(matrix, threadIndex)
 	End Function
 
@@ -592,6 +678,210 @@ Type TNBody
 		If bodyPtr Then
 			NewtonDestroyBody(bodyPtr)
 			bodyPtr = Null
+		End If
+	End Method
+	
+	Rem
+	bbdoc: new
+	End Rem
+	Method SetUserData(userData:Object)
+		NewtonBodySetUserData(Self, userData)
+	End Method
+	
+	Rem
+	bbdoc: new
+	End Rem
+	Method GetUserData:Object()
+		Return NewtonBodyGetUserData(Self)
+	End Method
+	
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TNMesh
+
+	Field meshPtr:Byte Ptr
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method ApplyTransform(matrix:TNMatrix)
+		NewtonMeshApplyTransform(meshPtr, Varptr matrix.frontX)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method CalculateOOBB(matrix:TNMatrix, x:Float Var, y:Float Var, z:Float Var)
+		NewtonMeshCalculateOOBB(meshPtr, Varptr matrix.frontX, Varptr x, Varptr y, Varptr z)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method CalculateVertexNormals(angle:Float)
+		NewtonMeshCalculateVertexNormals(meshPtr, angle * 0.01745329252)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method ApplySphericalMapping(material:Int)
+		NewtonMeshApplySphericalMapping(meshPtr, material)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method ApplyCylindricalMapping(cylinderMaterial:Int, capMaterial:Int)
+		NewtonMeshApplyCylindricalMapping(meshPtr, cylinderMaterial, capMaterial)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method ApplyBoxMapping(front:Int, side:Int, top:Int)
+		NewtonMeshApplyBoxMapping(meshPtr, front, side, top)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method IsOpenMesh:Int()
+		Return NewtonMeshIsOpenMesh(meshPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method FixTJoints()
+		NewtonMeshFixTJoints(meshPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Polygonize()
+		NewtonMeshPolygonize(meshPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Triangulate()
+		NewtonMeshTriangulate(meshPtr)
+	End Method
+	
+	
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method BeginFace()
+		NewtonMeshBeginFace(meshPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method AddFace(vertexCount:Int, vertex:Float Ptr, strideInBytes:Int, materialIndex:Int)
+		NewtonMeshAddFace(meshPtr, vertexCount, vertex, strideInBytes, materialIndex)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method EndFace()
+		NewtonMeshEndFace(meshPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetTotalFaceCount:Int()
+		Return NewtonMeshGetTotalFaceCount(meshPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetTotalIndexCount:Int()
+		Return NewtonMeshGetTotalIndexCount(meshPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetPointCount:Int()
+		Return NewtonMeshGetPointCount(meshPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetPointStrideInByte:Int()
+		Return NewtonMeshGetPointStrideInByte(meshPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetPointArray:Double Ptr()
+		Return NewtonMeshGetPointArray(meshPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetNormalArray:Double Ptr()
+		Return NewtonMeshGetNormalArray(meshPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetUV0Array:Double Ptr()
+		Return NewtonMeshGetUV0Array(meshPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetUV1Array:Double Ptr()
+		Return NewtonMeshGetUV1Array(meshPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetVertexCount:Int()
+		Return NewtonMeshGetVertexCount(meshPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetVertexStrideInByte:Int()
+		Return NewtonMeshGetVertexStrideInByte(meshPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method MeshGetVertexArray:Double Ptr()
+		Return NewtonMeshGetVertexArray(meshPtr)
+	End Method
+	
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Destroy()
+		If meshPtr Then
+			NewtonMeshDestroy(meshPtr)
+			meshPtr = Null
 		End If
 	End Method
 
@@ -642,9 +932,3 @@ Type TNMatrix
 	End Method
 	
 End Type
-
-Extern
-	Function NewtonBodyGetUserData:TNBody(body:Byte Ptr)
-	Function NewtonCollisionGetUserData:TNCollision(coll:Byte Ptr)
-	Function bmx_newtondynamics_RayCastDelegateFromPtr:TNRayCastDelegate(del:Byte Ptr)
-End Extern
