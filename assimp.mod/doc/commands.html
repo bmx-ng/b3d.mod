@@ -1,0 +1,49 @@
+<html><head><title>Assimp wrapper for Openb3d reference</title>
+<link rel=stylesheet Type=text/css href='../../../../doc/bmxstyle.css'>
+</head><body>
+<table width=100% cellspacing=0><tr align=center><td class=small>&nbsp;</td>
+<td class=small width=1%><b>Openb3dlibs.Assimp:</b></td>
+<td class=small width=1%><a href=#functions class=small>Functions</a></td>
+<td class=small width=1%><a href=#modinfo class=small>Modinfo</a></td>
+<td class=small width=1%><a href='../../../../mod/openb3dlibs.mod/assimp.mod/assimp.bmx' class=small>Source</a></td>
+<td class=small>&nbsp;</td></tr></table>
+<h1>Assimp wrapper for Openb3d</h1>
+Assimp mesh loader and helper functions.
+<h2><a name=functions></a>Functions Summary</h2><table class=doc width=100%>
+<tr><td class=docleft width=1%><a href=#aiEnumFiles>aiEnumFiles</a></td><td class=docright>
+Creates a list of valid files to load.
+</td></tr>
+<tr><td class=docleft width=1%><a href=#aiFitAnimMesh>aiFitAnimMesh</a></td><td class=docright>
+Like <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=LoadMesh">FitMesh</a>.
+</td></tr>
+<tr><td class=docleft width=1%><a href=#aiLoadMesh>aiLoadMesh</a></td><td class=docright>
+Like <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=LoadMesh">LoadMesh</a> but without a parent parameter.
+</td></tr>
+</table>
+<h2
+ id=functionsdet>Functions
+</h2>
+<table class=doc width=100% cellspacing=3 id=aiEnumFiles>
+<tr><td class=doctop colspan=2>Function aiEnumFiles( list:TList, dir:String, skipExt:TList )</td></tr>
+<tr><td class=docleft width=1%>Description</td><td class=docright>Creates a list of valid files to load.</td></tr>
+</table>
+<br>
+<table class=doc width=100% cellspacing=3 id=aiFitAnimMesh>
+<tr><td class=doctop colspan=2>Function aiFitAnimMesh( m:TEntity, x#, y#, z#, w#, h#, d#, uniform:Int=False )</td></tr>
+<tr><td class=docleft width=1%>Description</td><td class=docright>Like <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=LoadMesh">FitMesh</a>.</td></tr>
+</table>
+<br>
+<table class=doc width=100% cellspacing=3 id=aiLoadMesh>
+<tr><td class=doctop colspan=2>Function aiLoadMesh:TMesh( filename:String )</td></tr>
+<tr><td class=docleft width=1%>Description</td><td class=docright>Like <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=LoadMesh">LoadMesh</a> but without a parent parameter.</td></tr>
+</table>
+<br>
+<h2 id=modinfo>Module Information</h2>
+<table width=100%>
+<tr><th width=1%>Version</th><td>0.40</td></tr>
+<tr><th width=1%>License</th><td>BSD-3-Clause License</td></tr>
+<tr><th width=1%>Copyright</th><td>2009-2011 Peter Scheutz</td></tr>
+<tr><th width=1%>Authors</th><td>Peter Scheutz, Mark Mcvittie</td></tr>
+<tr><th width=1%>Source</th><td>https://github.com/markcwm/openb3dlibs.mod</td></tr>
+<tr><th width=1%>Original</th><td>https://github.com/Difference/blitzmax-assimp</td></tr>
+</body></html>
