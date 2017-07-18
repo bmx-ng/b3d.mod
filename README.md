@@ -19,7 +19,7 @@ BlitzMax library wrapper for Assimp v3.1.1.
 
 Assimp is included with the module and uses [Boost](http://www.boost.org/users/history/) so [BaH.Boost](https://github.com/maxmods/bah.mod) is required, there is currently no Boost workaround option but bear in mind this has no threads. 
 
-The wrapper is now a source import and can load meshes from streams allowing incbin or zipstream. Animations are not currently supported.
+The wrapper is now a source import and can load meshes from streams allowing incbin or zipstream. Animations are not implemented and it does not work in 64-bit yet.
 
 #### License ####
 
