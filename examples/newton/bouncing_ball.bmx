@@ -1,13 +1,15 @@
 ' bouncing_ball.bmx
-' basic example with force and torque callback.
+' basic example with force and torque callback
 
 SuperStrict
 
 Framework Openb3d.B3dglgraphics
+
 Import Openb3dLibs.NewtonDynamics
 Import Brl.Standardio
 
 Main()
+
 
 Function Main()
 

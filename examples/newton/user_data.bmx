@@ -1,9 +1,10 @@
 ' user_data.bmx
-' set and retrieve custom user data.
+' set and retrieve custom user data
 
 SuperStrict
 
 Framework Openb3d.B3dglgraphics
+
 Import Openb3dLibs.NewtonDynamics
 Import Brl.Standardio
 
@@ -11,6 +12,7 @@ Import Brl.Standardio
 Global ng:TNewtonGlobal = New TNewtonGlobal
 
 Main()
+
 
 Function Main()
 

@@ -18,6 +18,9 @@ Creates a rigid body.
 <tr><td class=docleft width=1%><a href=#TNMatrix>TNMatrix</a></td><td class=docright>
 &nbsp;
 </td></tr>
+<tr><td class=docleft width=1%><a href=#TNMesh>TNMesh</a></td><td class=docright>
+&nbsp;
+</td></tr>
 <tr><td class=docleft width=1%><a href=#TNRayCastDelegate>TNRayCastDelegate</a></td><td class=docright>
 A helper delegate for handling ray casts.
 </td></tr>
@@ -37,14 +40,26 @@ A complex collision geometry tree.
 <tr><td class=docleft width=1%>Information</td><td class=docright>Can be subclassed in order to override callbacks such as OnForceAndTorque().</td></tr>
 </table>
 <table class=doc width=90% align=center><tr ><th class=doctop colspan=2 align=left><a name=TNBody_methods></a>Methods Summary</th></tr>
+<tr><td class=docleft width=1%><a href=#AddForce>AddForce</a></td><td class=docright>
+Adds the net force applied to a rigid body.
+</td></tr>
+<tr><td class=docleft width=1%><a href=#AddTorque>AddTorque</a></td><td class=docright>
+Adds the net torque applied to a rigid body.
+</td></tr>
+<tr><td class=docleft width=1%><a href=#CalculateInverseDynamicsForce>CalculateInverseDynamicsForce</a></td><td class=docright>
+Calculates the next force that net to be applied to the body to archive the desired velocity in the current time step.
+</td></tr>
 <tr><td class=docleft width=1%><a href=#Destroy>Destroy</a></td><td class=docright>
 &nbsp;
 </td></tr>
-<tr><td class=docleft width=1%><a href=#GetAngularDampling>GetAngularDampling</a></td><td class=docright>
-Gets the linear viscous damping of the body.
+<tr><td class=docleft width=1%><a href=#GetAngularDamping>GetAngularDamping</a></td><td class=docright>
+Gets the angular viscous damping of the body.
 </td></tr>
 <tr><td class=docleft width=1%><a href=#GetCentreOfMass>GetCentreOfMass</a></td><td class=docright>
 Gets the relative position of the center of mass of a rigid body.
+</td></tr>
+<tr><td class=docleft width=1%><a href=#GetCollidable>GetCollidable</a></td><td class=docright>
+Returns true if the body is collidable.
 </td></tr>
 <tr><td class=docleft width=1%><a href=#GetForce>GetForce</a></td><td class=docright>
 Gets the net force applied to a rigid body after the last Newton Update.
@@ -79,6 +94,12 @@ Gets the net torque applied to a rigid body after the last Newton Update.
 <tr><td class=docleft width=1%><a href=#GetTorqueAcc>GetTorqueAcc</a></td><td class=docright>
 Gets the torque applied on the last call to OnForceAndTorque/apply force and torque callback.
 </td></tr>
+<tr><td class=docleft width=1%><a href=#GetType>GetType</a></td><td class=docright>
+Returns the body type.
+</td></tr>
+<tr><td class=docleft width=1%><a href=#GetUserData>GetUserData</a></td><td class=docright>
+new.
+</td></tr>
 <tr><td class=docleft width=1%><a href=#GetVelocity>GetVelocity</a></td><td class=docright>
 Gets the global linear velocity of the body.
 </td></tr>
@@ -88,8 +109,11 @@ Gets the world axis aligned bounding box (AABB) of the body.
 <tr><td class=docleft width=1%><a href=#OnForceAndTorque>OnForceAndTorque</a></td><td class=docright>
 &nbsp;
 </td></tr>
-<tr><td class=docleft width=1%><a href=#SetAngularDampling>SetAngularDampling</a></td><td class=docright>
-Sets the linear viscous damping of the body.
+<tr><td class=docleft width=1%><a href=#SetAngularDamping>SetAngularDamping</a></td><td class=docright>
+Applies the angular viscous damping coefficient to the body.
+</td></tr>
+<tr><td class=docleft width=1%><a href=#SetCollidable>SetCollidable</a></td><td class=docright>
+Sets the collidable state for the body.
 </td></tr>
 <tr><td class=docleft width=1%><a href=#SetForce>SetForce</a></td><td class=docright>
 Sets the net force applied to a rigid body.
@@ -99,6 +123,9 @@ Assigns an event function for applying external force and torque to a rigid body
 </td></tr>
 <tr><td class=docleft width=1%><a href=#SetLinearDamping>SetLinearDamping</a></td><td class=docright>
 Applies the linear viscous damping coefficient to the body.
+</td></tr>
+<tr><td class=docleft width=1%><a href=#SetMassMatrix>SetMassMatrix</a></td><td class=docright>
+new.
 </td></tr>
 <tr><td class=docleft width=1%><a href=#SetMassProperties>SetMassProperties</a></td><td class=docright>
 &nbsp;
@@ -115,16 +142,36 @@ Sets the net torque applied to a rigid body.
 <tr><td class=docleft width=1%><a href=#SetTransformCallback>SetTransformCallback</a></td><td class=docright>
 Assign a transformation event function to the body.
 </td></tr>
+<tr><td class=docleft width=1%><a href=#SetUserData>SetUserData</a></td><td class=docright>
+new.
+</td></tr>
 <tr><td class=docleft width=1%><a href=#SetVelocity>SetVelocity</a></td><td class=docright>
 Sets the global linear velocity of the body.
 </td></tr>
 </table>
+<table class=doc width=100% cellspacing=3 id=AddForce>
+<tr><td class=doctop colspan=2>Method AddForce(fx:Float, fy:Float, fz:Float)</td></tr>
+<tr><td class=docleft width=1%>Description</td><td class=docright>Adds the net force applied to a rigid body.</td></tr>
+<tr><td class=docleft width=1%>Information</td><td class=docright>This method is only effective when called from OnForceAndTorque/apply force and torque callback.</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=AddTorque>
+<tr><td class=doctop colspan=2>Method AddTorque(tx:Float, ty:Float, tz:Float)</td></tr>
+<tr><td class=docleft width=1%>Description</td><td class=docright>Adds the net torque applied to a rigid body.</td></tr>
+<tr><td class=docleft width=1%>Information</td><td class=docright>This method is only effective when called from OnForceAndTorque/apply force and torque callback.</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=CalculateInverseDynamicsForce>
+<tr><td class=doctop colspan=2>Method CalculateInverseDynamicsForce(timestep:Float, vx:Float, vy:Float, vz:Float, fx:Float Var, fy:Float Var, fz:Float Var)</td></tr>
+<tr><td class=docleft width=1%>Description</td><td class=docright>Calculates the next force that net to be applied to the body to archive the desired velocity in the current time step.</td></tr>
+<tr><td class=docleft width=1%>Information</td><td class=docright>Can be useful when creating object for game play.
+This treats the body as a point mass and is uses the solver to calculates the net force that need to be applied to the body
+such that it reaches the desired velocity in the net time step.</td></tr>
+</table>
 <table class=doc width=100% cellspacing=3 id=Destroy>
 <tr><td class=doctop colspan=2>Method Destroy()</td></tr>
 </table>
-<table class=doc width=100% cellspacing=3 id=GetAngularDampling>
-<tr><td class=doctop colspan=2>Method GetAngularDampling(aX:Float Var, aY:Float Var, aZ:Float Var)</td></tr>
-<tr><td class=docleft width=1%>Description</td><td class=docright>Gets the linear viscous damping of the body.</td></tr>
+<table class=doc width=100% cellspacing=3 id=GetAngularDamping>
+<tr><td class=doctop colspan=2>Method GetAngularDamping(aX:Float Var, aY:Float Var, aZ:Float Var)</td></tr>
+<tr><td class=docleft width=1%>Description</td><td class=docright>Gets the angular viscous damping of the body.</td></tr>
 </table>
 <table class=doc width=100% cellspacing=3 id=GetCentreOfMass>
 <tr><td class=doctop colspan=2>Method GetCentreOfMass(cx:Float Var, cy:Float Var, cz:Float Var)</td></tr>
@@ -133,6 +180,10 @@ Sets the global linear velocity of the body.
 when a rigid body is created the center of mass is set the the point c(0, 0, 0), and normally this is
 the best setting for a rigid body. However there are situations in which and object does not have symmetry or
 simple some kind of special effect is desired, and this origin needs to be changed.</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=GetCollidable>
+<tr><td class=doctop colspan=2>Method GetCollidable:Int()</td></tr>
+<tr><td class=docleft width=1%>Description</td><td class=docright>Returns true if the body is collidable.</td></tr>
 </table>
 <table class=doc width=100% cellspacing=3 id=GetForce>
 <tr><td class=doctop colspan=2>Method GetForce(fx:Float Var, fy:Float Var, fz:Float Var)</td></tr>
@@ -179,6 +230,15 @@ however since the rigid body already contained the rotation in it, it is more ef
 <tr><td class=docleft width=1%>Description</td><td class=docright>Gets the torque applied on the last call to OnForceAndTorque/apply force and torque callback.</td></tr>
 <tr><td class=docleft width=1%>Information</td><td class=docright>This method can be useful to modify torque from joint callback.</td></tr>
 </table>
+<table class=doc width=100% cellspacing=3 id=GetType>
+<tr><td class=doctop colspan=2>Method GetType:Int()</td></tr>
+<tr><td class=docleft width=1%>Description</td><td class=docright>Returns the body type.</td></tr>
+<tr><td class=docleft width=1%>Information</td><td class=docright>Returns one of NEWTON_DYNAMIC_BODY, NEWTON_KINEMATIC_BODY or NEWTON_DEFORMABLE_BODY.</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=GetUserData>
+<tr><td class=doctop colspan=2>Method GetUserData:Object()</td></tr>
+<tr><td class=docleft width=1%>Description</td><td class=docright>new.</td></tr>
+</table>
 <table class=doc width=100% cellspacing=3 id=GetVelocity>
 <tr><td class=doctop colspan=2>Method GetVelocity(vx:Float Var, vy:Float Var, vz:Float Var)</td></tr>
 <tr><td class=docleft width=1%>Description</td><td class=docright>Gets the global linear velocity of the body.</td></tr>
@@ -190,11 +250,21 @@ however since the rigid body already contained the rotation in it, it is more ef
 <table class=doc width=100% cellspacing=3 id=OnForceAndTorque>
 <tr><td class=doctop colspan=2>Method OnForceAndTorque(timestamp:Float, threadIndex:Int)</td></tr>
 </table>
-<table class=doc width=100% cellspacing=3 id=SetAngularDampling>
-<tr><td class=doctop colspan=2>Method SetAngularDampling(aX:Float, aY:Float, aZ:Float)</td></tr>
-<tr><td class=docleft width=1%>Description</td><td class=docright>Sets the linear viscous damping of the body.</td></tr>
+<table class=doc width=100% cellspacing=3 id=SetAngularDamping>
+<tr><td class=doctop colspan=2>Method SetAngularDamping(aX:Float, aY:Float, aZ:Float)</td></tr>
+<tr><td class=docleft width=1%>Description</td><td class=docright>Applies the angular viscous damping coefficient to the body.</td></tr>
 <tr><td class=docleft width=1%>Information</td><td class=docright>The default value of *angularDamp* is clamped to a value between 0.0 and 1.0; the default value is 0.1,
-There is a non zero implicit attenuation value of 0.0001 assumed by the integrator.</td></tr>
+There is a non zero implicit attenuation value of 0.0001 assumed by the integrator.
+The dampening viscous friction torque is added to the external torque applied to the body every frame before going to the solver-integrator.
+This torque is proportional to the square of the magnitude of the angular velocity to the body in the opposite direction of the angular velocity of the body.
+An application can set *angularDamp* to zero when the to take control of the external forces and torque applied to the body, should the application
+desire to have absolute control of the forces over that body. However, it is recommended that the *linearDamp* coefficient be set to a non-zero
+value for the majority of background bodies. This saves the application from needing to control these forces and also prevents the integrator from
+adding very large velocities to a body.</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=SetCollidable>
+<tr><td class=doctop colspan=2>Method SetCollidable(collidableState:Int)</td></tr>
+<tr><td class=docleft width=1%>Description</td><td class=docright>Sets the collidable state for the body.</td></tr>
 </table>
 <table class=doc width=100% cellspacing=3 id=SetForce>
 <tr><td class=doctop colspan=2>Method SetForce(fx:Float, fy:Float, fz:Float, fw:Float)</td></tr>
@@ -214,6 +284,10 @@ The Newton Engine does not call the callback for bodies that are inactive or hav
 <tr><td class=docleft width=1%>Description</td><td class=docright>Applies the linear viscous damping coefficient to the body.</td></tr>
 <tr><td class=docleft width=1%>Information</td><td class=docright>The default value of <b>linearDamp</b> is clamped to a value between 0.0 and 1.0; the default value is 0.1,
 There is a non zero implicit attenuation value of 0.0001 assume by the integrator.</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=SetMassMatrix>
+<tr><td class=doctop colspan=2>Method SetMassMatrix(mass:Float, Ixx:Float, Iyy:Float, Izz:Float)</td></tr>
+<tr><td class=docleft width=1%>Description</td><td class=docright>new.</td></tr>
 </table>
 <table class=doc width=100% cellspacing=3 id=SetMassProperties>
 <tr><td class=doctop colspan=2>Method SetMassProperties(mass:Float, collision:TNCollision)</td></tr>
@@ -239,6 +313,10 @@ There is a non zero implicit attenuation value of 0.0001 assume by the integrato
 re-implementing the method.
 The callback is called by the Newton engine every time a visual object that represents the rigid body has changed.
 The Newton engine does not call the callback for bodies that are inactive or have reached a state of stable equilibrium.</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=SetUserData>
+<tr><td class=doctop colspan=2>Method SetUserData(userData:Object)</td></tr>
+<tr><td class=docleft width=1%>Description</td><td class=docright>new.</td></tr>
 </table>
 <table class=doc width=100% cellspacing=3 id=SetVelocity>
 <tr><td class=doctop colspan=2>Method SetVelocity(vx:Float, vy:Float, vz:Float, vw:Float)</td></tr>
@@ -267,6 +345,162 @@ The Newton engine does not call the callback for bodies that are inactive or hav
 </table>
 <table class=doc width=100% cellspacing=3 id=GetIdentityMatrix>
 <tr><td class=doctop colspan=2>Function GetIdentityMatrix:TNMatrix()</td></tr>
+</table>
+<br>
+<table class=doc width=100% cellspacing=3 id=TNMesh>
+<tr><td class=doctop colspan=2>Type TNMesh</td></tr>
+</table>
+<table class=doc width=90% align=center><tr ><th class=doctop colspan=2 align=left><a name=TNMesh_methods></a>Methods Summary</th></tr>
+<tr><td class=docleft width=1%><a href=#AddFace>AddFace</a></td><td class=docright>
+&nbsp;
+</td></tr>
+<tr><td class=docleft width=1%><a href=#ApplyBoxMapping>ApplyBoxMapping</a></td><td class=docright>
+&nbsp;
+</td></tr>
+<tr><td class=docleft width=1%><a href=#ApplyCylindricalMapping>ApplyCylindricalMapping</a></td><td class=docright>
+&nbsp;
+</td></tr>
+<tr><td class=docleft width=1%><a href=#ApplySphericalMapping>ApplySphericalMapping</a></td><td class=docright>
+&nbsp;
+</td></tr>
+<tr><td class=docleft width=1%><a href=#ApplyTransform>ApplyTransform</a></td><td class=docright>
+&nbsp;
+</td></tr>
+<tr><td class=docleft width=1%><a href=#BeginFace>BeginFace</a></td><td class=docright>
+&nbsp;
+</td></tr>
+<tr><td class=docleft width=1%><a href=#CalculateOOBB>CalculateOOBB</a></td><td class=docright>
+&nbsp;
+</td></tr>
+<tr><td class=docleft width=1%><a href=#CalculateVertexNormals>CalculateVertexNormals</a></td><td class=docright>
+&nbsp;
+</td></tr>
+<tr><td class=docleft width=1%><a href=#Destroy>Destroy</a></td><td class=docright>
+&nbsp;
+</td></tr>
+<tr><td class=docleft width=1%><a href=#EndFace>EndFace</a></td><td class=docright>
+&nbsp;
+</td></tr>
+<tr><td class=docleft width=1%><a href=#FixTJoints>FixTJoints</a></td><td class=docright>
+&nbsp;
+</td></tr>
+<tr><td class=docleft width=1%><a href=#GetNormalArray>GetNormalArray</a></td><td class=docright>
+&nbsp;
+</td></tr>
+<tr><td class=docleft width=1%><a href=#GetPointArray>GetPointArray</a></td><td class=docright>
+&nbsp;
+</td></tr>
+<tr><td class=docleft width=1%><a href=#GetPointCount>GetPointCount</a></td><td class=docright>
+&nbsp;
+</td></tr>
+<tr><td class=docleft width=1%><a href=#GetPointStrideInByte>GetPointStrideInByte</a></td><td class=docright>
+&nbsp;
+</td></tr>
+<tr><td class=docleft width=1%><a href=#GetTotalFaceCount>GetTotalFaceCount</a></td><td class=docright>
+&nbsp;
+</td></tr>
+<tr><td class=docleft width=1%><a href=#GetTotalIndexCount>GetTotalIndexCount</a></td><td class=docright>
+&nbsp;
+</td></tr>
+<tr><td class=docleft width=1%><a href=#GetUV0Array>GetUV0Array</a></td><td class=docright>
+&nbsp;
+</td></tr>
+<tr><td class=docleft width=1%><a href=#GetUV1Array>GetUV1Array</a></td><td class=docright>
+&nbsp;
+</td></tr>
+<tr><td class=docleft width=1%><a href=#GetVertexCount>GetVertexCount</a></td><td class=docright>
+&nbsp;
+</td></tr>
+<tr><td class=docleft width=1%><a href=#GetVertexStrideInByte>GetVertexStrideInByte</a></td><td class=docright>
+&nbsp;
+</td></tr>
+<tr><td class=docleft width=1%><a href=#IsOpenMesh>IsOpenMesh</a></td><td class=docright>
+&nbsp;
+</td></tr>
+<tr><td class=docleft width=1%><a href=#MeshGetVertexArray>MeshGetVertexArray</a></td><td class=docright>
+&nbsp;
+</td></tr>
+<tr><td class=docleft width=1%><a href=#Polygonize>Polygonize</a></td><td class=docright>
+&nbsp;
+</td></tr>
+<tr><td class=docleft width=1%><a href=#Triangulate>Triangulate</a></td><td class=docright>
+&nbsp;
+</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=AddFace>
+<tr><td class=doctop colspan=2>Method AddFace(vertexCount:Int, vertex:Float Ptr, strideInBytes:Int, materialIndex:Int)</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=ApplyBoxMapping>
+<tr><td class=doctop colspan=2>Method ApplyBoxMapping(front:Int, side:Int, top:Int)</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=ApplyCylindricalMapping>
+<tr><td class=doctop colspan=2>Method ApplyCylindricalMapping(cylinderMaterial:Int, capMaterial:Int)</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=ApplySphericalMapping>
+<tr><td class=doctop colspan=2>Method ApplySphericalMapping(material:Int)</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=ApplyTransform>
+<tr><td class=doctop colspan=2>Method ApplyTransform(matrix:TNMatrix)</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=BeginFace>
+<tr><td class=doctop colspan=2>Method BeginFace()</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=CalculateOOBB>
+<tr><td class=doctop colspan=2>Method CalculateOOBB(matrix:TNMatrix, x:Float Var, y:Float Var, z:Float Var)</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=CalculateVertexNormals>
+<tr><td class=doctop colspan=2>Method CalculateVertexNormals(angle:Float)</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=Destroy>
+<tr><td class=doctop colspan=2>Method Destroy()</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=EndFace>
+<tr><td class=doctop colspan=2>Method EndFace()</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=FixTJoints>
+<tr><td class=doctop colspan=2>Method FixTJoints()</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=GetNormalArray>
+<tr><td class=doctop colspan=2>Method GetNormalArray:Double Ptr()</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=GetPointArray>
+<tr><td class=doctop colspan=2>Method GetPointArray:Double Ptr()</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=GetPointCount>
+<tr><td class=doctop colspan=2>Method GetPointCount:Int()</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=GetPointStrideInByte>
+<tr><td class=doctop colspan=2>Method GetPointStrideInByte:Int()</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=GetTotalFaceCount>
+<tr><td class=doctop colspan=2>Method GetTotalFaceCount:Int()</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=GetTotalIndexCount>
+<tr><td class=doctop colspan=2>Method GetTotalIndexCount:Int()</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=GetUV0Array>
+<tr><td class=doctop colspan=2>Method GetUV0Array:Double Ptr()</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=GetUV1Array>
+<tr><td class=doctop colspan=2>Method GetUV1Array:Double Ptr()</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=GetVertexCount>
+<tr><td class=doctop colspan=2>Method GetVertexCount:Int()</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=GetVertexStrideInByte>
+<tr><td class=doctop colspan=2>Method GetVertexStrideInByte:Int()</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=IsOpenMesh>
+<tr><td class=doctop colspan=2>Method IsOpenMesh:Int()</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=MeshGetVertexArray>
+<tr><td class=doctop colspan=2>Method MeshGetVertexArray:Double Ptr()</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=Polygonize>
+<tr><td class=doctop colspan=2>Method Polygonize()</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=Triangulate>
+<tr><td class=doctop colspan=2>Method Triangulate()</td></tr>
 </table>
 <br>
 <table class=doc width=100% cellspacing=3 id=TNRayCastDelegate>
@@ -345,6 +579,9 @@ Creates a cylinder primitive for collision.
 <tr><td class=docleft width=1%><a href=#CreateDynamicBody>CreateDynamicBody</a></td><td class=docright>
 Creates a rigid body.
 </td></tr>
+<tr><td class=docleft width=1%><a href=#CreateMesh>CreateMesh</a></td><td class=docright>
+&nbsp;
+</td></tr>
 <tr><td class=docleft width=1%><a href=#CreateSphere>CreateSphere</a></td><td class=docright>
 Creates a generalized ellipsoid primitive.
 </td></tr>
@@ -353,6 +590,9 @@ Creates an empty complex collision geometry tree.
 </td></tr>
 <tr><td class=docleft width=1%><a href=#Destroy>Destroy</a></td><td class=docright>
 &nbsp;
+</td></tr>
+<tr><td class=docleft width=1%><a href=#DestroyAllBodies>DestroyAllBodies</a></td><td class=docright>
+new.
 </td></tr>
 <tr><td class=docleft width=1%><a href=#GetBodyCount>GetBodyCount</a></td><td class=docright>
 Returns the total number of rigid bodies in the world.
@@ -398,6 +638,9 @@ Creates an instance of the Newton world.
 <tr><td class=docleft width=1%>Information</td><td class=docright>Creates a Newton rigid body and assigns a the <b>collision</b> geometry representing the rigid body.
 Optionally pass a subclassed TNBody object for direct access to force/torque callbacks.</td></tr>
 </table>
+<table class=doc width=100% cellspacing=3 id=CreateMesh>
+<tr><td class=doctop colspan=2>Method CreateMesh:TNMesh()</td></tr>
+</table>
 <table class=doc width=100% cellspacing=3 id=CreateSphere>
 <tr><td class=doctop colspan=2>Method CreateSphere:TNCollision(radius:Float, shapeID:Int = 0, offsetMatrix:TNMatrix = Null, custom:TNCollision = Null)</td></tr>
 <tr><td class=docleft width=1%>Description</td><td class=docright>Creates a generalized ellipsoid primitive.</td></tr>
@@ -410,6 +653,10 @@ for example to make a sphere set all tree radius to the same value, to make a el
 </table>
 <table class=doc width=100% cellspacing=3 id=Destroy>
 <tr><td class=doctop colspan=2>Method Destroy()</td></tr>
+</table>
+<table class=doc width=100% cellspacing=3 id=DestroyAllBodies>
+<tr><td class=doctop colspan=2>Method DestroyAllBodies()</td></tr>
+<tr><td class=docleft width=1%>Description</td><td class=docright>new.</td></tr>
 </table>
 <table class=doc width=100% cellspacing=3 id=GetBodyCount>
 <tr><td class=doctop colspan=2>Method GetBodyCount:Int()</td></tr>
@@ -475,6 +722,13 @@ ensure that <b>timestep</b> is small enough to guarantee physics stability.</td>
 <br>
 <h2 id=modinfo>Module Information</h2>
 <table width=100%>
+<tr><th width=1%>Version</th><td>1.05</td></tr>
+<tr><th width=1%>License</th><td>zlib</td></tr>
+<tr><th width=1%>Copyright</th><td>Wrapper - 2015-2017 Bruce A Henderson, Mark Mcvittie</td></tr>
+<tr><th width=1%>Copyright</th><td>Library - 2003-2011 Julio Jerez and Alain Suero</td></tr>
+<tr><th width=1%>History</th><td>1.05 Release - added DestroyAllBodies, SetMassMatrix, SetUserData, GetUserData</td></tr>
+<tr><th width=1%>History</th><td>1.04 Release - added TNMesh and GC Thread support</td></tr>
+<tr><th width=1%>History</th><td>1.00 Initial Release</td></tr>
 <tr><th width=1%>CC_OPTS</th><td>-D_NEWTON_STATIC_LIB</td></tr>
 <tr><th width=1%>CC_OPTS</th><td>-DPTW32_BUILD -DPTW32_STATIC_LIB -D_MINGW_32_VER</td></tr>
 <tr><th width=1%>CC_OPTS</th><td>-msse -msse3 -mfpmath=sse -ffloat-store -ffast-math -freciprocal-math -funsafe-math-optimizations -fsingle-precision-constant</td></tr>

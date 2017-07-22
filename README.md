@@ -11,7 +11,7 @@ The wrapper is not ready for use yet.
 
 #### License ####
 
-Newton Dynamics is licensed under the zlib open source license.
+Both the library and wrapper are licensed with the zlib license.
 
 #### Assimp (Open Asset Import) ####
 
@@ -23,4 +23,4 @@ The wrapper is now a source import and can load meshes from streams allowing inc
 
 #### License ####
 
-Assimp is released as open source under the terms of a 3-clause BSD license.
+Both the library and wrapper are licensed with the 3-clause BSD license.

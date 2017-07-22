@@ -1,9 +1,10 @@
 ' balloon.bmx
-' create a spherical body, apply a force, and track its motion over time.
+' create a spherical body, apply a force, and track its motion over time
 
 SuperStrict
 
 Framework Openb3d.B3dglgraphics
+
 Import Openb3dLibs.NewtonDynamics
 Import Brl.Standardio
 
@@ -11,6 +12,7 @@ Import Brl.Standardio
 Global ng:TNewtonGlobal = New TNewtonGlobal
 
 Main()
+
 
 Function Main()
 
