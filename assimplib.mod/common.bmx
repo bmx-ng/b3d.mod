@@ -208,7 +208,7 @@ bbdoc: Returns the error text of the last failed import process.
 about: See <a href="http://assimp.sourceforge.net/lib_html/class_assimp_1_1_importer.html">Assimp.cpp</a>
 and <a href="http://assimp.sourceforge.net/lib_html/cimport_8h.html">cimport.h</a>.
 End Rem
-	Function aiIsExtensionSupported:Int( pFile$z ) = "aiIsExtensionSupported"
+	Function aiIsExtensionSupported_:Int( pFile$z ) = "aiIsExtensionSupported"
 
 ' MaterialSystem.cpp
 
@@ -261,10 +261,3 @@ End Rem
 	Function aiGetMaterialTextureCount:Int( pMat:Byte Ptr, texType:Int ) = "aiGetMaterialTextureCount"
 	
 End Extern
-
-Rem
- aiSetImportPropertyInteger caused crash, was missing p parameter
- changed aiGetMaterialTexture pMat:Int Ptr to :Byte Ptr
- changed aiImportFile:Int Ptr to :Byte Ptr
- added aiImportFileFromMemory
-EndRem

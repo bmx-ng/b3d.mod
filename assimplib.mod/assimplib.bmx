@@ -34,3 +34,16 @@ Import "source.bmx"
 Import "common.bmx"
 
 Include "types.bmx"
+
+Function aiIsExtensionSupported:Int( pFile:String )
+	Return aiIsExtensionSupported_( pFile )
+End Function
+
+Rem
+ Memo:
+ aiSetImportPropertyInteger caused crash, was missing p parameter
+ changed aiGetMaterialTexture pMat:Int Ptr to :Byte Ptr
+ changed aiImportFile:Int Ptr to :Byte Ptr
+ added aiImportFileFromMemory
+ unwrapped aiIsExtensionSupported caused "double free or corruption" error in ubuntu x64
+EndRem

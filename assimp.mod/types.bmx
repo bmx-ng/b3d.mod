@@ -517,6 +517,8 @@ EndRem
 		Local folder:Byte Ptr = ReadDir(dir)
 		Local file:String
 		
+		DebugLog "dir: " + dir
+		
 		Repeat
 			file = NextFile(folder)
 			
@@ -526,20 +528,17 @@ EndRem
 				
 				If FileType(fullPath) = FILETYPE_DIR
 				
-					'DebugLog file
+					DebugLog "file: " + file
+					
 					'If(dir[0]) <> "."
 						EnumFiles(list, fullPath, skipExt)
 					'EndIf
-					
 				Else
-				
-					DebugLog "fullpath: " + fullPath
+					DebugLog "fullPath: " + fullPath
 					
-					If aiIsExtensionSupported(Lower(ExtractExt(fullPath)))
+					If aiIsExtensionSupported("." + Lower(ExtractExt(fullPath)))
 					
-						'DebugStop
-						If Not skipExt.Contains(Lower(ExtractExt(fullPath))) ' Filter out nff for now
-							' assimp author is looking into a fix
+						If Not skipExt.Contains(Lower(ExtractExt(fullPath))) ' Filter out formats
 							list.AddLast(fullPath)
 						EndIf
 						
