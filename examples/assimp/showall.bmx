@@ -3,10 +3,10 @@
 
 Strict
 
-Import Openb3dlibs.Assimp
+Framework Openb3d.Openb3d
+Import Openb3dLibs.Assimp
 
 Graphics3D DesktopWidth(),DesktopHeight(),0,2
-
 
 Local cam:TCamera=CreateCamera()
 PositionEntity cam,0,150,-145
@@ -35,14 +35,15 @@ If FileSize(path)=-1 Then Print "Error: path not found"
 'skipExt.addlast("irrmesh")
 
 Local test%=0
+
 Select test
-	Case 0 ' load all
+	Case 0 ' load all formats
 		aiEnumFiles( filelist,path,skipExt )
 	Case 1 ' specify a format
 		aiEnumFiles( filelist,path+"/OBJ",skipExt )
-	Case 2 ' current directory
+	Case 2 ' use current directory
 		aiEnumFiles( filelist,"./",skipExt )
-	Case 3 ' load path
+	Case 3 ' use file requester
 		path=RequestDir( "Select a Folder",CurrentDir() )
 		If FileType(path$) = 2 Then aiEnumFiles( filelist,path,skipExt )
 End Select
@@ -63,7 +64,7 @@ Local mesh:TMesh = CreateCube()
 PointEntity cam,mesh
 
 ' slideshow
-Local go:Int =1
+Local go:Int = 1
 Local lastslideTime:Int = MilliSecs()
 Local slideDuration:Int = 1000
 Local slideshow:Int = False
@@ -95,15 +96,13 @@ While Not KeyDown(KEY_ESCAPE)
 		If aiIsExtensionSupported( ExtractExt(String(filearray[fileNUmber])) )
 
 			currentFile = String(filearray[fileNUmber])
-			
 			If mesh Then FreeEntity mesh ; mesh = Null
-			
 			mesh = aiLoadMesh( String(filearray[fileNUmber]) )
 			
 			If mesh
-			'	EntityPickMode( mesh,2 )
-				aiFitAnimMesh mesh,-100,-100,-100,200,200,200,True
-			'	FitMesh mesh,-100,-100,-100,200,200,200,True
+				'EntityPickMode( mesh,2 )
+				aiFitAnimMesh mesh,-100,-100,-100,200,200,200,True	
+				'FitMesh mesh,-100,-100,-100,200,200,200,True
 			EndIf
 		EndIf
 		
@@ -137,4 +136,3 @@ While Not KeyDown(KEY_ESCAPE)
 	
 Wend
 End
-

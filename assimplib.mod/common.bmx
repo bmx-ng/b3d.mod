@@ -1,5 +1,13 @@
 ' common.bmx
 
+?ptr64
+Const PAD:Int=2 ' 64-bit padding
+Const ONE32:Int=0
+?Not ptr64
+Const PAD:Int=1
+Const ONE32:Int=1
+?
+
 ' config.h
 
 ' Input parameter to the #aiProcess_SortByPType step:

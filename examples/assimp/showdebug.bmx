@@ -1,13 +1,12 @@
-' showsingle.bmx
-' based on minib3d bones example
+' showdebug.bmx
 
 Strict
 
 Framework Openb3d.Openb3d
 Import Openb3dLibs.Assimp
 
-Incbin "../media/zombie.b3d"
-Incbin "../media/Zombie.jpg"
+'Include "typeslib.bmx"
+'Include "types.bmx"
 
 Local width%=DesktopWidth(),height%=DesktopHeight(),depth%=0,Mode%=2
 
@@ -21,46 +20,55 @@ Local light:TLight=CreateLight()
 Local sphere:TMesh=CreateSphere()
 HideEntity sphere
 
+Local path$ = "../../assimplib.mod/assimp/test/models"
 Local ent:TMesh
 
-Local zipfile:String = "../media/zombie.zip"
-
-' Note: you can load password protected zips but these are easily opened with 7zip as the filenames are not encrypted, 
-' a zip inside a password zip is encrypted but zipstream can't open these, so use custom pak file to protect assets.
-'SetZipStreamPassword zipfile,"blitzmax"
-
-Local test%=3
+Local test%=2
 
 Select test
 
 	Case 1 ' load assimp mesh
 		Local time:Int=MilliSecs()
 		Local file:String = "../media/zombie.b3d"
-		ent = aiLoadMesh(file, Null, -2) ' -2 = flat shaded
+		ent = aiLoader.LoadMesh(file, Null, -2)
 		DebugLog "assimp time="+(time-MilliSecs())
 		
-	Case 2 ' load incbin mesh (and texture as file not found)
-		Local time:Int=MilliSecs()
-		Local file:String = "incbin::../media/zombie.b3d"
-		ent=aiLoadMesh(file)
-		file = "incbin::../media/Zombie.jpg"
-		Local tex:TTexture=LoadTexture(file,9,True)
-		EntityTexture ent,tex
-		DebugLog "incbin time="+(time-MilliSecs())
+	' debugging
+	Case 2 ' model trouble
+		DebugLog "modeltrouble test:"
+		ent=aiLoader.LoadMesh("modeltrouble/assimp301/house.dae")
+		FitMesh ent,-10,0,-10,20,20,20,True
 		
-	Case 3 ' load zip mesh (and texture as file not found)
-		Local time:Int=MilliSecs()
-		Local file:String = "zip::"+zipfile+"//zombie.b3d"
-		ent = aiLoadMesh(file)
-		file = "zip::"+zipfile+"//Zombie.jpg"
-		Local tex:TTexture=LoadTexture(file,9,True)
-		EntityTexture ent,tex
-		DebugLog "zip time="+(time-MilliSecs())
+	Case 3
+		DebugLog "modeltrouble test:"
+		ent=aiLoader.LoadMesh("modeltrouble/assimp303/model.obj")
+		FitMesh ent,-10,0,-10,20,20,20,True
 		
-	Default ' load openb3d mesh
-		Local time:Int=MilliSecs()
-		ent=LoadAnimMesh("../media/zombie.b3d")
-		DebugLog "openb3d time="+(time-MilliSecs())
+	Case 4 ' ascii cob bug test
+		DebugLog "cob test:"
+		ent=aiLoader.LoadMesh(path+"COB/dwarf_ascii.cob")
+		If ent=Null Then ent=sphere
+		FitMesh ent,-10,0,-10,20,20,20,True
+		
+	Case 5
+		DebugLog "cob test:"
+		ent=aiLoader.LoadMesh(path+"COB/molecule_ascii.cob")
+		If ent=Null Then ent=sphere
+		FitMesh ent,-10,0,-10,20,20,20,True
+		
+	Case 6 ' blend bug test
+		' error: terminate called after throwing an instance of 'Assimp::Blender::Error'
+		' what(): BlendDNA: Did not find a field named `angle` in structure `Camera`
+		DebugLog "blend test:"
+		ent=aiLoader.LoadMesh(path+"BLEND/4Cubes4Mats_248.blend")
+		If ent=Null Then ent=sphere
+		FitMesh ent,-10,0,-10,20,20,20,True
+		
+	Case 7
+		DebugLog "blend test:"
+		ent=aiLoader.LoadMesh(path+"BLEND/blender_269_regress1.blend")
+		If ent=Null Then ent=sphere
+		FitMesh ent,-10,0,-10,20,20,20,True
 End Select
 
 ' child entity variables
