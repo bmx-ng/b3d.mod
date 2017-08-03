@@ -3,16 +3,21 @@
 Strict
 
 Rem
-bbdoc: Assimp wrapper for Openb3d
-about: Assimp mesh loader and helper functions.
+bbdoc: Assimp for Openb3d
+about: Assimp mesh loader and a few helper functions. 
+To build Assimp in 64-bit use @{bmk makemods -a -w -g x64 openb3dlibs.assimp}.
+Requires BaH.Boost source and Koriolis.Zipstream module binaries, see source links below.
+To get BaH.Boost with Subversion open command-line and make sure you "cd" to bah.mod before checkout.
 End Rem
 Module Openb3dlibs.Assimp
 
 ModuleInfo "Version: 0.40"
 ModuleInfo "License: BSD-3-Clause"
 ModuleInfo "Copyright: Wrapper - 2009-2017 Peter Scheutz, Mark Mcvittie"
-ModuleInfo "Copyright: Library - 2006-2012 assimp team"
+ModuleInfo "Copyright: Library - 2006-2012 Assimp team"
 ModuleInfo "Source: https://github.com/markcwm/openb3dlibs.mod"
+ModuleInfo "Source: svn checkout https://github.com/maxmods/bah.mod/trunk/boost.mod"
+ModuleInfo "Source: https://github.com/maxmods/koriolis.mod"
 
 Import Openb3d.B3dglgraphics
 Import Openb3dlibs.Assimplib

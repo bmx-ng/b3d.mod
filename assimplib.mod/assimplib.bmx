@@ -3,17 +3,19 @@
 Strict
 
 Rem
-bbdoc: Assimp
-about: Wrapper for Open Asset Import library. Requires BaH.Boost and Koriolis.Zipstream.
+bbdoc: Assimp library wrapper
+about: Wrapper for Assimp (Open Asset Import) library. Imported by assimp.mod.
+Requires BaH.Boost source and Koriolis.Zipstream module binaries, see source links below.
+To get BaH.Boost with Subversion open command-line and make sure you "cd" to bah.mod before checkout.
 End Rem
 Module Openb3dlibs.Assimplib
 
 ModuleInfo "Version: 0.40"
 ModuleInfo "License: BSD-3-Clause"
 ModuleInfo "Copyright: Wrapper - 2009-2017 Peter Scheutz, Mark Mcvittie"
-ModuleInfo "Copyright: Library - 2006-2012 assimp team"
+ModuleInfo "Copyright: Library - 2006-2012 Assimp team"
 ModuleInfo "Source: https://github.com/markcwm/openb3dlibs.mod"
-ModuleInfo "Source: https://github.com/maxmods/bah.mod/tree/master/boost.mod"
+ModuleInfo "Source: svn checkout https://github.com/maxmods/bah.mod/trunk/boost.mod"
 ModuleInfo "Source: https://github.com/maxmods/koriolis.mod"
 
 ModuleInfo "History: 0.40 Release Aug 2017 - added zipstream, 64-bit wrapper"
