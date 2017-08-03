@@ -26,12 +26,17 @@ Local ent:TMesh
 Local test%=2
 
 Select test
-
-	Case 1 ' load assimp mesh
+	
+	Case 1
 		Local time:Int=MilliSecs()
 		Local file:String = "../media/zombie.b3d"
 		ent = aiLoader.LoadMesh(file, Null, -2)
 		DebugLog "assimp time="+(time-MilliSecs())
+		
+	Case 2
+		Local file:String = path + "/3DS/cubes_with_alpha.3DS"
+		ent = aiLoader.LoadMesh(file)
+		FitMesh ent,-10,0,-10,20,20,20,True
 		
 	' debugging
 	Case 2 ' model trouble

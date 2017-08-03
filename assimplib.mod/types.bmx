@@ -150,7 +150,11 @@ End Type
 
 Type aiMaterial
 
+	?ptr64
+	Field pMaterial:Long Ptr
+	?Not ptr64
 	Field pMaterial:Int Ptr
+	?
 	Field Properties:aiMaterialProperty[]
 	Field NumProperties:Int
 	Field NumAllocated:Int
@@ -229,7 +233,7 @@ Type aiMaterial
 	
 	Method GetPropertyNames:String[]()
 	
-		Local names:String[NumProperties]	
+		Local names:String[NumProperties]
 		For Local id:Int = 0 To NumProperties - 1
 		
 			names[id] = Properties[id].mKey
@@ -280,7 +284,7 @@ Type aiMaterial
 	Method GetMaterialColor:Float[](Key:String)	
 	
 		Local colors:Float[4]
-		If aiGetMaterialColor(pMaterial, Key, 0, 0, colors)	= AI_SUCCESS
+		If aiGetMaterialColor(pMaterial, Key, 0, 0, colors) = AI_SUCCESS
 			Return colors
 		EndIf
 		
@@ -291,7 +295,7 @@ Type aiMaterial
 		Local size:Int = MAXLEN
 		Local values:Int[size]
 		
-		If aiGetMaterialIntegerArray(pMaterial, Key, 0, 0, values, Varptr size)	= AI_SUCCESS
+		If aiGetMaterialIntegerArray(pMaterial, Key, 0, 0, values, Varptr size) = AI_SUCCESS
 			values = values[..size]
 			Return values
 		EndIf
@@ -413,7 +417,11 @@ Type aiMesh
 	Field pColors:Byte Ptr[AI_MAX_NUMBER_OF_COLOR_SETS * PAD]
 	Field pTextureCoords:Byte Ptr[AI_MAX_NUMBER_OF_TEXTURECOORDS * PAD]
 	Field NumUVComponents:Int[AI_MAX_NUMBER_OF_TEXTURECOORDS]
+	?ptr64
+	Field pFaces:Long Ptr
+	?Not ptr64
 	Field pFaces:Int Ptr
+	?
 	Field NumBones:Int
 	Field pBones:Byte Ptr
 	Field MaterialIndex:Int
@@ -548,7 +556,7 @@ Type aiMesh
 	
 	Method TriangleVertex:Int(index:Int, corner:Int)
 	
-		Local faceIndexes:Int Ptr = Int Ptr pFaces[((index * 2) + 1) * PAD]
+		Local faceIndexes:Int Ptr = Int Ptr pFaces[(index * 2) + 1]
 		Return faceIndexes[corner]
 		
 	End Method
@@ -559,8 +567,8 @@ Type aiMesh
 		Local index:Int
 		
 		For Local count:Int = 0 To NumFaces - 1
-			Local faceCount:Int = pFaces[index * PAD]
-			Local faceIndexes:Int Ptr = Int Ptr pFaces[(index + 1) * PAD]
+			Local faceCount:Int = pFaces[index]
+			Local faceIndexes:Int Ptr = Int Ptr pFaces[index + 1]
 			
 			' TODO for nontriangular faces: faceCount could be other than 3
 			For Local n:Int = 0 To 2
@@ -593,40 +601,52 @@ Type aiNode
 		Local node:aiNode = New aiNode
 		node.Parent = parent
 		node.pointer = pointer
-		
+				
 		node.name = String.FromCString(pointer + (4 * PAD))
 		
 		DebugLog "Nodename " + node.name
 		
 		node.transformation = aiMatrix4x4.Create(Float Ptr (Byte Ptr pointer + MAXLEN + (4 * PAD)))
 		
+		?ptr64
+		Local pBase:Long Ptr = Long Ptr(Byte Ptr pointer + MAXLEN + (4 * PAD) + (16 * 4))
+		?Not ptr64
 		Local pBase:Int Ptr = Int Ptr(Byte Ptr pointer + MAXLEN + (4 * PAD) + (16 * 4))
+		?
 		
 		'For Local i:Int = 0 To 11
 		'	DebugLog "pBase " + i + "=" + pBase[i]
 		'Next
 		
 		'Rem
-		node.NumMeshes = pBase[3 * PAD] ' int 3/6
+		node.NumMeshes = pBase[3] ' int 3/6
 		
 		DebugLog "Mesh count for this node: " + node.NumMeshes
 		
-		Local pMeshIndexArray:Int Ptr = Int Ptr pBase[4 * PAD] ' ptr 4/8
+		?ptr64
+		Local pMeshIndexArray:Long Ptr = Long Ptr pBase[4] ' ptr 4/8
+		?Not ptr64
+		Local pMeshIndexArray:Int Ptr = Int Ptr pBase[4] ' ptr 4/8
+		?
 		
 		node.MeshIndexes = node.MeshIndexes[..node.NumMeshes]
 		
 		For Local id:Int = 0 To node.NumMeshes - 1
-			node.MeshIndexes[id] = pMeshIndexArray[id * PAD]
+			node.MeshIndexes[id] = pMeshIndexArray[id]
 		Next
 		'End Rem
 		
 		' get child nodes
-		node.NumChildren = pBase[1 * PAD] ' int 1/2
+		node.NumChildren = pBase[1] ' int 1/2
 		
 		DebugLog "node.NumChildren=" + node.NumChildren
 		
 		If node.NumChildren
-			Local pChildArray:Int Ptr = Int Ptr pBase[2 * PAD] ' ptr 2/4
+			?ptr64
+			Local pChildArray:Long Ptr = Long Ptr pBase[2] ' ptr 2/4
+			?Not ptr64
+			Local pChildArray:Int Ptr = Int Ptr pBase[2] ' ptr 2/4
+			?
 			
 			'For Local i:Int = 0 To 11
 			'	DebugLog "pChildArray " + i + "=" + pChildArray[i]
@@ -635,7 +655,7 @@ Type aiNode
 			node.Children = node.Children[..node.NumChildren]
 			
 			For Local id:Int = 0 To node.NumChildren - 1
-				node.Children[id] = aiNode.Create(Byte Ptr pChildArray[id * PAD], node)
+				node.Children[id] = aiNode.Create(Byte Ptr pChildArray[id], node)
 			Next
 		EndIf
 		
@@ -647,7 +667,11 @@ End Type
 
 Type aiScene
 
+	?ptr64
+	Field pointer:Long Ptr
+	?Not ptr64
 	Field pointer:Int Ptr
+	?
 	Field flags:Int
 	Field rootNode:aiNode
 	Field numMeshes:Int
@@ -679,88 +703,106 @@ Type aiScene
 			If (buffer = Null Or bufLen = 0) Then Return Null
 			
 			pointer = aiImportFileFromMemory(buffer, bufLen, readFlags, Right(fileName, 3))
-			
 		Else
-		?win32
+		
+			?win32
 			' TODO this is a fix for wavefront mtl not being found
 			' does this mess up UNC paths or something else?
 			filename = filename.Replace("/", "\")
-		?
-			pointer = aiImportFile(filename, readflags)
+			?
 			
+			pointer = aiImportFile(filename, readflags)
 		EndIf
 		
 		If pointer <> Null
-		
 			flags = pointer[0]
 			
 			'For Local n:Int = 0 To 23
 			'	DebugLog "pointer " + n + "=" + pointer[n]
 			'Next
 			
-			rootNode = aiNode.Create(Byte Ptr pointer[1 * PAD]) ' 1/2
-			numMeshes = pointer[2 * PAD] ' 2/4
+			rootNode = aiNode.Create(Byte Ptr pointer[1]) ' 1/2
+			numMeshes = pointer[2] ' 2/4
 			
-			Local pMeshArray:Int Ptr = Int Ptr pointer[3 * PAD] ' 3/6
+			?ptr64
+			Local pMeshArray:Long Ptr = Long Ptr pointer[3] ' 3/6
+			?Not ptr64
+			Local pMeshArray:Int Ptr = Int Ptr pointer[3] ' 3/6
+			?
+			
 			meshes = meshes[..numMeshes]
 			
 			DebugLog "flags = " + flags
 			DebugLog "rootNode.pointer = " + rootNode.pointer
-			DebugLog "numMeshes = " + numMeshes ' 1/3
-			DebugLog "pMeshArray = " + pMeshArray ' 2/5
+			DebugLog "numMeshes = " + numMeshes
+			DebugLog "pMeshArray = " + pMeshArray
 			
 			For Local id:Int = 0 To numMeshes - 1
-				Local pMesh:Int Ptr = Int Ptr pMeshArray[id * PAD]
+			
+				Local iMesh:Int Ptr = Int Ptr pMeshArray[id]
+				?ptr64
+				Local pMesh:Long Ptr = Long Ptr pMeshArray[id]
+				?Not ptr64
+				Local pMesh:Int Ptr = Int Ptr pMeshArray[id]
+				?
 				
-				'For Local n:Int = 0 To 13
-				'	DebugLog "pmesh " + n + "=" + pMesh[n]
+				'For Local n:Int = 0 To 54
+				'	DebugLog "iMesh " + n + "=" + iMesh[n] + " pMesh = " + pMesh[n]
 				'Next
 				
 				meshes[id] = New aiMesh
-				meshes[id].PrimitiveTypes = pMesh[0]
-				meshes[id].NumVertices = pMesh[1]
-				meshes[id].NumFaces = pMesh[2]
+				meshes[id].PrimitiveTypes = iMesh[0]
+				meshes[id].NumVertices = iMesh[1]
+				meshes[id].NumFaces = iMesh[2]
 				
-				meshes[id].pVertices = Float Ptr pMesh[(2 * PAD) + ONE32] ' 3/4 - calculate 32/64 offsets
-				meshes[id].pNormals = Float Ptr pMesh[(3 * PAD) + ONE32] ' 4/6
-				meshes[id].pTangents = Byte Ptr pMesh[(4 * PAD) + ONE32] ' 5/8
-				meshes[id].pBitangents = Byte Ptr pMesh[(5 * PAD) + ONE32] ' 6/10
+				meshes[id].pVertices = Float Ptr pMesh[2 + ONE32] ' 3/4 - calculate 32/64 offsets
+				meshes[id].pNormals = Float Ptr pMesh[3 + ONE32] ' 4/6
+				meshes[id].pTangents = Byte Ptr pMesh[4 + ONE32] ' 5/8
+				meshes[id].pBitangents = Byte Ptr pMesh[5 + ONE32] ' 6/10 - [(5 * PAD) + ONE32]
 				
 				DebugLog "meshes[" + id + "].PrimitiveTypes = " + meshes[id].PrimitiveTypes 
 				DebugLog "meshes[" + id + "].NumVertices = " + meshes[id].NumVertices 
 				DebugLog "meshes[" + id + "].NumFaces = " + meshes[id].NumFaces 
 				DebugLog "meshes[" + id + "].pVertices = " + meshes[id].pVertices 
 				DebugLog "meshes[" + id + "].pNormals = " + meshes[id].pNormals 
-				DebugLog "meshes[" + id + "].pTangents = " + meshes[id].pTangents 
-				DebugLog "meshes[" + id + "].pBitangents = " + meshes[id].pBitangents 
+				'DebugLog "meshes[" + id + "].pTangents = " + meshes[id].pTangents 
+				'DebugLog "meshes[" + id + "].pBitangents = " + meshes[id].pBitangents 
 				
-				Local pMeshPointerOffset:Int = (6 * PAD) + ONE32 ' 7/12
+				Local iMeshPointerOffset:Int = (6 * PAD) + ONE32 ' 7/12
+				Local pMeshPointerOffset:Int = 6 + ONE32 ' 7/12
 				
 				For Local n:Int = 0 To AI_MAX_NUMBER_OF_COLOR_SETS - 1
-					meshes[id].pColors[n] = Byte Ptr pMesh[pMeshPointerOffset + n] ' ptr arr - twice the size in 64-bit
+					meshes[id].pColors[n] = Byte Ptr iMesh[iMeshPointerOffset + n] ' ptr arr - twice the size in 64-bit
 					'DebugLog "meshes[" + id + "].pColors[n] = " + meshes[id].pColors[n]
 				Next
 				
-				pMeshPointerOffset:+ (AI_MAX_NUMBER_OF_COLOR_SETS * PAD) ' 15/28
+				iMeshPointerOffset:+ (AI_MAX_NUMBER_OF_COLOR_SETS * PAD) ' 15/28
+				pMeshPointerOffset:+ AI_MAX_NUMBER_OF_COLOR_SETS ' 15/28
 				
 				For Local n:Int = 0 To AI_MAX_NUMBER_OF_TEXTURECOORDS - 1
 					meshes[id].pTextureCoords[n] = Byte Ptr pMesh[pMeshPointerOffset + n] ' ptr arr
 					'DebugLog "meshes[" + id + "].pTextureCoords[n] = " + meshes[id].pTextureCoords[n]
 				Next 
 				
-				pMeshPointerOffset:+ (AI_MAX_NUMBER_OF_TEXTURECOORDS * PAD) ' 23/44
+				iMeshPointerOffset:+ (AI_MAX_NUMBER_OF_TEXTURECOORDS * PAD) ' 23/44
+				pMeshPointerOffset:+ AI_MAX_NUMBER_OF_TEXTURECOORDS ' 23/44
 				
 				For Local n:Int = 0 To AI_MAX_NUMBER_OF_TEXTURECOORDS - 1
-					meshes[id].NumUVComponents[n] = pMesh[pMeshPointerOffset + n] ' int arr - same size as 32-bit
+					meshes[id].NumUVComponents[n] = iMesh[iMeshPointerOffset + n] ' int arr - same size as 32-bit
 					'DebugLog "meshes[" + id + "].NumUVComponents[n] = " + meshes[id].NumUVComponents[n]
 				Next
 				
-				pMeshPointerOffset:+ AI_MAX_NUMBER_OF_TEXTURECOORDS ' 31/52
+				iMeshPointerOffset:+ AI_MAX_NUMBER_OF_TEXTURECOORDS ' 31/52
+				pMeshPointerOffset:+ (AI_MAX_NUMBER_OF_TEXTURECOORDS / PAD) ' 23/44
 				
+				?ptr64
+				meshes[id].pFaces = Long Ptr pMesh[pMeshPointerOffset]
+				?Not ptr64
 				meshes[id].pFaces = Int Ptr pMesh[pMeshPointerOffset]
-				meshes[id].NumBones = pMesh[pMeshPointerOffset + (1 * PAD)] ' 32/54
-				meshes[id].pBones = Byte Ptr pMesh[pMeshPointerOffset + (2 * PAD)] ' 33/55
-				meshes[id].MaterialIndex = pMesh[pMeshPointerOffset + (3 * PAD)] ' 34/57
+				?
+				meshes[id].NumBones = iMesh[iMeshPointerOffset + (1 * PAD)] ' 32/54
+				meshes[id].pBones = Byte Ptr pMesh[pMeshPointerOffset + 2] ' 33/55
+				meshes[id].MaterialIndex = iMesh[iMeshPointerOffset + (3 * PAD)] ' 34/57
 				
 				'For Local n:Int = 0 To meshes[id].NumFaces - 1
 				'	DebugLog "meshes[id].pFaces " + n + "="+meshes[id].pFaces[n]
@@ -770,12 +812,16 @@ Type aiScene
 				DebugLog "meshes[" + id + "].NumBones = " + meshes[id].NumBones 
 				DebugLog "meshes[" + id + "].pBones = " + meshes[id].pBones 
 				DebugLog "meshes[" + id + "].MaterialIndex = " + meshes[id].MaterialIndex
-				
 			Next
 			
-			NumMaterials = pointer[4 * PAD] ' 4/8
+			NumMaterials = pointer[4] ' 4/8
 			
-			Local pMaterialArray:Int Ptr = Int Ptr pointer[5 * PAD] ' 5/10
+			?ptr64
+			Local pMaterialArray:Long Ptr = Long Ptr pointer[5] ' 5/10
+			?Not ptr64
+			Local pMaterialArray:Int Ptr = Int Ptr pointer[5] ' 5/10
+			?
+			
 			materials = materials[..NumMaterials]
 			
 			DebugLog "NumMaterials = " + NumMaterials
@@ -785,20 +831,29 @@ Type aiScene
 				DebugLog "Material found"
 				
 				materials[id] = New aiMaterial
-				materials[id].pMaterial = Int Ptr pMaterialArray[id * PAD]
-				materials[id].NumProperties = materials[id].pMaterial[1 * PAD]
-				materials[id].NumAllocated = materials[id].pMaterial[2 * PAD]
+				?ptr64
+				materials[id].pMaterial = Long Ptr pMaterialArray[id]
+				?Not ptr64
+				materials[id].pMaterial = Int Ptr pMaterialArray[id]
+				?
+				materials[id].NumProperties = materials[id].pMaterial[1]
+				materials[id].NumAllocated = materials[id].pMaterial[2]
 				
 				'Rem
 				' loading properties is not needed, but I do it for now to make a list of loaded properties
 				' redim
-				materials[id].Properties = materials[id].Properties[..materials[id].pMaterial[1 * PAD]]
+				materials[id].Properties = materials[id].Properties[..materials[id].pMaterial[1]]
 				
-				Local pMaterialPropertyArray:Int Ptr = Int Ptr materials[id].pMaterial[0]	
+				?ptr64
+				Local pMaterialPropertyArray:Long Ptr = Long Ptr materials[id].pMaterial[0]	
+				?Not ptr64
+				Local pMaterialPropertyArray:Int Ptr = Int Ptr materials[id].pMaterial[0]
+				?
 				
 				For Local pid:Int = 0 To materials[id].NumProperties - 1
 					DebugLog "Materialproperty found"
-					materials[id].Properties[pid] = aiMaterialProperty.Create(Byte Ptr pMaterialPropertyArray[pid * PAD])
+					
+					materials[id].Properties[pid] = aiMaterialProperty.Create(Byte Ptr pMaterialPropertyArray[pid])
 				Next
 				'EndRem
 			Next
