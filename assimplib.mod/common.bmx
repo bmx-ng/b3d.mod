@@ -203,11 +203,7 @@ and <a href="http://assimp.sourceforge.net/lib_html/cimport_8h.html">cimport.h</
 End Rem
 	Function aiReleaseImport( pScene:Byte Ptr ) = "aiReleaseImport"
 
-Rem
-bbdoc: Returns the error text of the last failed import process.
-about: See <a href="http://assimp.sourceforge.net/lib_html/class_assimp_1_1_importer.html">Assimp.cpp</a>
-and <a href="http://assimp.sourceforge.net/lib_html/cimport_8h.html">cimport.h</a>.
-End Rem
+' see assimplib.bmx
 	Function aiIsExtensionSupported_:Int( pFile$z ) = "aiIsExtensionSupported"
 
 ' MaterialSystem.cpp

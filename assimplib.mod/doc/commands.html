@@ -10,8 +10,8 @@
 <td class=small>&nbsp;</td></tr></table>
 <h1>Assimp library wrapper</h1>
 Wrapper for Assimp (Open Asset Import) library. Imported by assimp.mod.
-Requires BaH.Boost source and Koriolis.Zipstream module binaries, see source links below.
-To get BaH.Boost with Subversion open command-line and make sure you "cd" to bah.mod before checkout.
+Requires BaH.Boost source code and Koriolis.Zipstream module binaries, see module info links.
+To get BaH.Boost by Subversion open command-line and make sure you "cd" to bah.mod before checkout.
 <h2><a name=functions></a>Functions Summary</h2><table class=doc width=100%>
 <tr><td class=docleft width=1%><a href=#aiGetMaterialColor>aiGetMaterialColor</a></td><td class=docright>
 Get a color (3 or 4 floats) from the material.
@@ -37,7 +37,7 @@ Reads the given file and returns its content.
 <tr><td class=docleft width=1%><a href=#aiImportFileFromMemory>aiImportFileFromMemory</a></td><td class=docright>
 Reads the given file from a given memory buffer.
 </td></tr>
-<tr><td class=docleft width=1%><a href=#aiIsExtensionSupported_>aiIsExtensionSupported_</a></td><td class=docright>
+<tr><td class=docleft width=1%><a href=#aiIsExtensionSupported>aiIsExtensionSupported</a></td><td class=docright>
 Returns the error text of the last failed import process.
 </td></tr>
 <tr><td class=docleft width=1%><a href=#aiReleaseImport>aiReleaseImport</a></td><td class=docright>
@@ -108,8 +108,8 @@ and <a href="http://assimp.sourceforge.net/lib_html/cimport_8h.html">cimport.h</
 and <a href="http://assimp.sourceforge.net/lib_html/cimport_8h.html">cimport.h</a>.</td></tr>
 </table>
 <br>
-<table class=doc width=100% cellspacing=3 id=aiIsExtensionSupported_>
-<tr><td class=doctop colspan=2>Function aiIsExtensionSupported_:Int( pFile$z )</td></tr>
+<table class=doc width=100% cellspacing=3 id=aiIsExtensionSupported>
+<tr><td class=doctop colspan=2>Function aiIsExtensionSupported:Int( pFile:String )</td></tr>
 <tr><td class=docleft width=1%>Description</td><td class=docright>Returns the error text of the last failed import process.</td></tr>
 <tr><td class=docleft width=1%>Information</td><td class=docright>See <a href="http://assimp.sourceforge.net/lib_html/class_assimp_1_1_importer.html">Assimp.cpp</a>
 and <a href="http://assimp.sourceforge.net/lib_html/cimport_8h.html">cimport.h</a>.</td></tr>
@@ -145,18 +145,56 @@ A mesh uses only a single material which is referenced by a material ID.
 <br>
 <h2 id=modinfo>Module Information</h2>
 <table width=100%>
-<tr><th width=1%>Version</th><td>0.40</td></tr>
+<tr><th width=1%>Version</th><td>0.41</td></tr>
 <tr><th width=1%>License</th><td>BSD-3-Clause</td></tr>
 <tr><th width=1%>Copyright</th><td>Wrapper - 2009-2017 Peter Scheutz, Mark Mcvittie</td></tr>
 <tr><th width=1%>Copyright</th><td>Library - 2006-2012 Assimp team</td></tr>
 <tr><th width=1%>Source</th><td>https://github.com/markcwm/openb3dlibs.mod</td></tr>
 <tr><th width=1%>Source</th><td>svn checkout https://github.com/maxmods/bah.mod/trunk/boost.mod</td></tr>
 <tr><th width=1%>Source</th><td>https://github.com/maxmods/koriolis.mod</td></tr>
+<tr><th width=1%>Source</th><td>https://github.com/assimp/assimp</td></tr>
+<tr><th width=1%>History</th><td>0.41 Release Aug 2017 - update to assimp 3.2</td></tr>
 <tr><th width=1%>History</th><td>0.40 Release Aug 2017 - added zipstream, 64-bit wrapper</td></tr>
 <tr><th width=1%>History</th><td>0.38 Release Jul 2017 - added source wrapper, incbin streams</td></tr>
-<tr><th width=1%>History</th><td>0.36 Release Sep 2014 - library wrapper, update to assimp v3.1.1</td></tr>
+<tr><th width=1%>History</th><td>0.36 Release Sep 2014 - library wrapper, update to assimp 3.1.1</td></tr>
 <tr><th width=1%>History</th><td>0.30 Release Apr 2011</td></tr>
 <tr><th width=1%>History</th><td>0.22 Release Nov 2009</td></tr>
 <tr><th width=1%>History</th><td>0.07 Initial Release Jan 2009</td></tr>
 <tr><th width=1%>CC_OPTS</th><td>-fexceptions</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_COMPRESSED_IFC</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_COMPRESSED_XGL</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_OWN_ZLIB</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_MD3_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_MDL_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_PLY_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_ASE_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_HMP_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_SMD_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_MDC_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_MD5_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_STL_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_LWO_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_DXF_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_NFF_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_RAW_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_OFF_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_AC_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_BVH_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_IRRMESH_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_IRR_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_Q3D_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_TERRAGEN_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_CSM_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_3D_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_LWS_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_OGRE_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_OPENGEX_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_COB_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_Q3BSP_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_NDO_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_IFC_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_XGL_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_ASSBIN_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_C4D_IMPORTER</td></tr>
+<tr><th width=1%>CC_OPTS</th><td>-DASSIMP_BUILD_NO_EXPORT</td></tr>
 </body></html>
