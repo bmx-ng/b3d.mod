@@ -1,24 +1,4 @@
-/* Copyright (c) 2015 Bruce A Henderson
-
-  This software is provided 'as-is', without any express or implied
-  warranty. In no event will the authors be held liable for any damages
-  arising from the use of this software.
-
-  Permission is granted to anyone to use this software for any purpose,
-  including commercial applications, and to alter it and redistribute it
-  freely, subject to the following restrictions:
-
-     1. The origin of this software must not be misrepresented; you must not
-     claim that you wrote the original software. If you use this software
-     in a product, an acknowledgment in the product documentation would be
-     appreciated but is not required.
-
-     2. Altered source versions must be plainly marked as such, and must not be
-     misrepresented as being the original software.
-
-     3. This notice may not be removed or altered from any source
-     distribution.
-*/
+// glue.cpp
 
 #include "Newton.h"
 #include "dMatrix.h"
@@ -46,6 +26,9 @@ extern "C" {
 	void bmx_newtondynamics_NewtonBodyGetTorqueAcc(const NewtonBody* const, float *, float *, float *);
 	void bmx_newtondynamics_NewtonBodyGetCentreOfMass(const NewtonBody* const, float *, float *, float *);
 	void bmx_newtondynamics_NewtonBodyGetAABB(const NewtonBody* const, float *, float *, float *, float *, float *, float *);
+	void bmx_newtondynamics_NewtonBodyAddForce(const NewtonBody* const, float, float, float);
+	void bmx_newtondynamics_NewtonBodyAddTorque(const NewtonBody* const, float, float, float);
+	void bmx_newtondynamics_NewtonBodyCalculateInverseDynamicsForce(const NewtonBody* const, float, float, float, float, float *, float *, float *);
 
 	void bmx_newtondynamics_config_body(BBObject *, NewtonBody *);
 	void bmx_newtondynamics_body_destroycallback(const NewtonBody* const);
@@ -227,6 +210,25 @@ void bmx_newtondynamics_NewtonBodyGetAABB(const NewtonBody* const body, float * 
 	*p1x = v1.m_x;
 	*p1y = v1.m_y;
 	*p1z = v1.m_z;
+}
+
+void bmx_newtondynamics_NewtonBodyAddForce(const NewtonBody* const body, float x, float y, float z) {
+	dVector v(x, y, z, 0.0f);
+	NewtonBodyAddForce(body, &v[0]);
+}
+
+void bmx_newtondynamics_NewtonBodyAddTorque(const NewtonBody* const body, float x, float y, float z) {
+	dVector v(x, y, z, 0.0f);
+	NewtonBodyAddTorque(body, &v[0]);
+}
+
+void bmx_newtondynamics_NewtonBodyCalculateInverseDynamicsForce(const NewtonBody* const body, float timestep, float x, float y, float z, float * fx, float * fy, float * fz) {
+	dVector v(x, y, z, 0.0f);
+	dVector f;
+	NewtonBodyCalculateInverseDynamicsForce(body, timestep, &v[0], &f[0]);
+	*fx = f.m_x;
+	*fy = f.m_y;
+	*fz = f.m_z;
 }
 
 // ********************************************************
